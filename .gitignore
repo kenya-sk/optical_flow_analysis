@@ -1,6 +1,9 @@
 #Ignore everything
 *
 
+#Whitelist anything that's a directory
+!*/
+
 #ignore certain directory
 movie/
 image/
