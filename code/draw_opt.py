@@ -6,6 +6,7 @@ import cv2
 import pylab as plt
 import time
 import sys
+import argparse
 
 
 #opticalflowを描写する関数
@@ -155,8 +156,22 @@ def mean_val_plot(meanList,valList):
 	plt.savefig('../image/opt.png')
 	plt.show()
 		
+#argparseの作成
+def make_parse():
+	parser = argparse.ArgumentParser(prog='flow_opt.py',
+									usage='draw optical flow and mean/val graphs',
+									description='description',
+									epilog='end',
+									add_help=True,
+									)
+
+	parser.add_argument('Arg1: input file path',help='string',type=argparse.FileType('r'))
+	parser.add_argument('Arg2: output file path',help='string',type=argparse.FileType('w'))
+
+	args = parser.parse_args()
 
 if __name__ == '__main__':
+	make_parse()
 	#入力ファイルと出力先を引数から受け取る
 	args = sys.argv
 	#処理時間を計測
