@@ -1,0 +1,19 @@
+#Ignore everything
+*
+
+#ignore certain directory
+/movie/
+/image/
+/time/
+
+#And all the file types I'm interested in.
+!.gitignore
+!*.py
+!*.cpp
+!*.h
+!*.sh
+!*.ipynb
+!*.md
+!CMakeLists.txt
+
+.ipynb_checkpoints
