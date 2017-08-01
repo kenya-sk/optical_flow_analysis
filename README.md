@@ -10,7 +10,7 @@ conda install -c https://conda.anaconda.org/menpo opencv3
 
 ### exec
 0. draw_flow.py
-    * caluculate optical flow and mean/val
+    * caluculate optical flow and mean/variance
 
 
 ## info
