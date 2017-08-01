@@ -10,14 +10,13 @@ import argparse
 
 
 #drow optical flow
-'''
-img: original image
-gray: gray scale image
-flow: calculate optical flow array
-step: adjust step interval 
-'''
-
 def draw_flow(img,gray,flow,step=16):
+	'''
+	img: original image
+	gray: gray scale image
+	flow: calculate optical flow array
+	step: adjust step interval 
+	'''
 	height,width = img.shape[:2]
 	y,x = np.mgrid[step/2:height:step,step/2:width:step].reshape(2,-1).astype(int)
 	fx,fy = flow[y,x].T
@@ -27,12 +26,7 @@ def draw_flow(img,gray,flow,step=16):
 		opt_size[i] = (fx[i]**2 + fy[i]**2)**0.5
 	lines = np.vstack([x,y,x+fx,y+fy]).T.reshape(-1,2,2)
 	lines = np.int32(lines)
-	#ベクトル描写用のマスク
-	#mask = np.zeros((height,width,3),np.uint8)
-	#cv2.polylines(mask,lines,False,(0,0,255),2)
-	#色固定で描写
-	#cv2.polylines(img,lines,False,(0,0,255),1)
-	#加減速の判断 フレームより変化が大きければ赤、小さければ青
+	#decide accleration(red)/decleration(blue)
 	i = 0
 	prev = 0
 	for (x1,y1),(x2,y2) in lines:
@@ -48,22 +42,10 @@ def draw_flow(img,gray,flow,step=16):
 			prev = opt_size[i]
 		i += 1
 	return img	
-	#変化をドットで描く
-	'''
-	rad = int(step/2)
-	i = 0	#ループカウンタ
-	for (x1,y1),(x2,y2) in lines:
-		pv = img[y1,x1]
-		col = (int(pv[0]),int(pv[1]),int(pv[2]))
-		#ドットの半径を移動に応じて小さくする
-		r = rad - int(rad*abs(fx[i]*.2))
-		cv2.circle(mask,(x1,y1),abs(r),col,-1)
-			i += 1
-	return mask
-	'''
+
 
 #describe optical flow in target area
-def partical_draw_flow(img,gray,flow,active):
+def partical_draw_flow(img,gray,flow,active,typeNum=1):
 	x,y = active[:,0],active[:,1]
 	fx,fy = flow[y,x].T
 	#change amount array
@@ -73,21 +55,26 @@ def partical_draw_flow(img,gray,flow,active):
 	
 	lines = np.vstack([x,y,x+fx,y+fy]).T.reshape(-1,2,2)
 	lines = np.int32(lines)
-	#decide accleration/decleration
-	i = 0
-	prev = 0
-	for (x1,y1),(x2,y2) in lines:
-		if opt_size[i] > prev:
-			col = (0,0,255)
-		else:
-			col = (255,0,0)	
-	
-		cv2.line(img,(x1,y1),(x2,y2),col,1)
-		if (i+1)%width == 1:
-			prev = 0
-		else:	
-			prev = opt_size[i]
-		i += 1
+	#1: only one color(red)
+	if typeNum == 1:
+		col = (0,0,255)
+		for (x1,y1),(x2,y2) in lines:
+			cv2.line(img,(x1,y1),(x2,y2),col,1)
+	#2: decide accleration(red)/decleration(blue)
+	elif typeNum == 2:	
+		i = 0
+		prev = 0
+		for (x1,y1),(x2,y2) in lines:
+			if opt_size[i] > prev:
+				col = (0,0,255)
+			else:
+				col = (255,0,0)	
+			cv2.line(img,(x1,y1),(x2,y2),col,1)
+			if (i+1)%width == 1:
+				prev = 0
+			else:	
+				prev = opt_size[i]
+			i += 1
 	return img
 
 #image segmentation
@@ -217,7 +204,7 @@ if __name__ == '__main__':
 			val = calc_val(active,flow,num_pixcel,mean)
 			valList.append(val)
 			#make optical flow image
-			flow_img = partical_draw_flow(img,gray,flow,active)
+			flow_img = partical_draw_flow(img,gray,flow,active,1)
 			#restore and display
 			out.write(flow_img)
 			#cv2.imshow('optical flow',flow_img)
@@ -230,7 +217,6 @@ if __name__ == '__main__':
 				break
 		else:
 			break
-
 	cap.release()
 	out.release()
 	cv2.destroyAllWindows()
