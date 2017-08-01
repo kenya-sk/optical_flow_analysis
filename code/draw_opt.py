@@ -157,10 +157,12 @@ def mean_val_plot(meanList,valList):
 		
 
 if __name__ == '__main__':
+	#入力ファイルと出力先を引数から受け取る
+	args = sys.argv
 	#処理時間を計測
 	start = time.time()
 	#入力動画の取得
-	cap = cv2.VideoCapture('/Volumes/HDD-IO/Tuna_conv/test2.mp4')
+	cap = cv2.VideoCapture(str(args[1]))
 	fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
 	fps = cap.get(cv2.CAP_PROP_FPS)
 	height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -174,7 +176,7 @@ if __name__ == '__main__':
 	frameNum = 0
 	sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' '*20,0))
 	#出力先
-	out = cv2.VideoWriter('../movie/output_opt_test2.mp4',fourcc,15.3,(width,height))
+	out = cv2.VideoWriter(str(args[2]),fourcc,15.3,(width,height))
 	#最初のフレーム処理
 	cap.set(cv2.CAP_PROP_POS_MSEC,3*1000)
 	ret,prev = cap.read()
@@ -185,7 +187,7 @@ if __name__ == '__main__':
 	#各フレームでの分散を格納したリスト
 	valList = []
 	#対象領域のピクセルとその数を格納
-	mask = cv2.imread('../image/out_mask.png',0)
+	mask = cv2.imread('../image/mask.png',0)
 	mask = cv2.merge((mask,mask,mask))
 	active,num_pixcel = count_pixcel(mask,8)
 	while (cap.isOpened()):
