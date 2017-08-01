@@ -15,4 +15,4 @@ conda install -c https://conda.anaconda.org/menpo opencv3
 
 ## info
 ### help command
-   * if you need argument information and etc. please press [program name] -h .
+   * if you need argument information. please press [program name] -h .
