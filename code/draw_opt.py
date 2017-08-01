@@ -9,19 +9,19 @@ import sys
 import argparse
 
 
-#opticalflowを描写する関数
+#drow optical flow
 '''
-img:元画像
-gray:グレースケール変換画像
-flow:計算されたflow画像
-step:間隔を調節
+img: original image
+gray: gray scale image
+flow: calculate optical flow array
+step: adjust step interval 
 '''
 
 def draw_flow(img,gray,flow,step=16):
 	height,width = img.shape[:2]
 	y,x = np.mgrid[step/2:height:step,step/2:width:step].reshape(2,-1).astype(int)
 	fx,fy = flow[y,x].T
-	#変化量を配列に格納	
+	#change amount array
 	opt_size = np.empty(len(fx))
 	for i in range(len(fx)):
 		opt_size[i] = (fx[i]**2 + fy[i]**2)**0.5
@@ -62,18 +62,18 @@ def draw_flow(img,gray,flow,step=16):
 	return mask
 	'''
 
-#active領域内のみに対してオプティカルフローを描写
+#describe optical flow in target area
 def partical_draw_flow(img,gray,flow,active):
 	x,y = active[:,0],active[:,1]
 	fx,fy = flow[y,x].T
-	#変化量を配列に格納	
+	#change amount array
 	opt_size = np.empty(len(fx))
 	for i in range(len(fx)):
 		opt_size[i] = (fx[i]**2 + fy[i]**2)**0.5
 	
 	lines = np.vstack([x,y,x+fx,y+fy]).T.reshape(-1,2,2)
 	lines = np.int32(lines)
-	#加減速の判断 フレームより変化が大きければ赤、小さければ青
+	#decide accleration/decleration
 	i = 0
 	prev = 0
 	for (x1,y1),(x2,y2) in lines:
@@ -90,13 +90,13 @@ def partical_draw_flow(img,gray,flow,active):
 		i += 1
 	return img
 
-#画像の切り出し
+#image segmentation
 def cut_img(img,y1,y2,x1,x2):
 	img = img[y1:y2,x1:x2]
 	return img
 
 
-#２値化された画像に対して対象となるピクセル数,step間隔でカウント
+#count target area cell in binary image by sstep interval
 def count_pixcel(img,step):
 	height,width = img.shape[:2]
 	active = []
@@ -110,14 +110,14 @@ def count_pixcel(img,step):
 	return active,count		
 
 
-#対象領域内のオプティカルフローの平均を計算
+#calculate mean (optival flow value) in target area
 def calc_mean(active,flow,num_pixcel):
 	total = 0.0
 	for x,y in active:
 			total += ((flow[y,x][0])**2 + (flow[y,x][1]**2))**0.5 
 	return (total/num_pixcel)
 
-#対象領域の分散を計算
+#calculate variance (optical flow value) in target area
 def calc_val(active,flow,num_pixcel,mean):
 	val = 0.0
 	for x,y in active:
@@ -125,17 +125,17 @@ def calc_val(active,flow,num_pixcel,mean):
 	val = val/num_pixcel
 	return val
 		
-#動画読み込みのゲージ表示
+#display loding gage
 def show_gage(pointList,num):
 	if num in pointList:
 		numIdx = pointList.index(num)+1
 		sys.stderr.write('\rWriting Rate:[{0}{1}] {2}%'.format('*'*numIdx,' '*(20-numIdx),numIdx*5))
 
-#平均、分散の時間推移をプロット
+
+#plot mean and variance 
 def mean_val_plot(meanList,valList):
-	#平均、分散のグラフの描写
 	plt.figure(figsize=(12,9))
-	#平均
+	#mean list
 	meanX = []
 	for i in range(len(meanList)):
 		meanX.append(i/15.3)
@@ -144,7 +144,7 @@ def mean_val_plot(meanList,valList):
 	plt.xlabel('time [s]')
 	plt.ylabel('mean')
 	plt.plot(meanX,meanList)
-	#分散	
+	#variance list
 	valX = []
 	for i in range(len(valList)):
 		valX.append(i/15.3)
@@ -156,7 +156,7 @@ def mean_val_plot(meanList,valList):
 	plt.savefig('../image/opt.png')
 	plt.show()
 		
-#argparseの作成
+#make argparse
 def make_parse():
 	parser = argparse.ArgumentParser(prog='flow_opt.py',
 									usage='draw optical flow and mean/val graphs',
@@ -172,39 +172,39 @@ def make_parse():
 
 if __name__ == '__main__':
 	make_parse()
-	#入力ファイルと出力先を引数から受け取る
+	#accept input and output file by argment
 	args = sys.argv
-	#処理時間を計測
+	#recode processing time
 	start = time.time()
-	#入力動画の取得
+	#capture movie and data
 	cap = cv2.VideoCapture(str(args[1]))
 	fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
 	fps = cap.get(cv2.CAP_PROP_FPS)
 	height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 	width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 	totalFrame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-	#ゲージ出力のための前処理
+	#preprocessing for loding gage
 	point = int(totalFrame/20)
 	pointList = []
 	for i in range(point,totalFrame,point):
 		pointList.append(i)
 	frameNum = 0
 	sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' '*20,0))
-	#出力先
+	#output movie
 	out = cv2.VideoWriter(str(args[2]),fourcc,15.3,(width,height))
-	#最初のフレーム処理
+	#initial frame
 	cap.set(cv2.CAP_PROP_POS_MSEC,3*1000)
 	ret,prev = cap.read()
-	#prevgray = cv2.bitwise_and(prev,mask)
 	prevgray = cv2.cvtColor(prev,cv2.COLOR_BGR2GRAY)
-	#各フレームでの平均値を格納したリスト
+	#average value list per frame
 	meanList = []
-	#各フレームでの分散を格納したリスト
+	#variance value list per frame
 	valList = []
-	#対象領域のピクセルとその数を格納
+	#store pixcel of the target area and their number 
 	mask = cv2.imread('../image/mask.png',0)
 	mask = cv2.merge((mask,mask,mask))
 	active,num_pixcel = count_pixcel(mask,8)
+	#main process
 	while (cap.isOpened()):
 		ret,img = cap.read()
 		frameNum += 1
@@ -212,19 +212,13 @@ if __name__ == '__main__':
 			gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 			flow = cv2.calcOpticalFlowFarneback(prevgray,gray,None,0.5,3,15,3,5,1.2,0)
 			prevgray = gray
-			
-			#各フレームで平均値をリストとして格納
 			mean = calc_mean(active,flow,num_pixcel)
 			meanList.append(mean)
-			#各フレームで分散をリストとして格納
 			val = calc_val(active,flow,num_pixcel,mean)
 			valList.append(val)
-
-			#オプティカルフローを画像上に描写
-			#flow_img = draw_flow(img,gray,flow,8)
+			#make optical flow image
 			flow_img = partical_draw_flow(img,gray,flow,active)
-
-			#保存、表示
+			#restore and display
 			out.write(flow_img)
 			#cv2.imshow('optical flow',flow_img)
 			show_gage(pointList,frameNum)
