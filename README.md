@@ -1,5 +1,4 @@
 # flow
-# CIP
 
 ## workflow
 ### install openCV
