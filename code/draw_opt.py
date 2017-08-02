@@ -9,43 +9,15 @@ import sys
 import argparse
 
 
-#drow optical flow
-def draw_flow(img,gray,flow,step=16):
+def partical_draw_flow(img,gray,flow,active,typeNum=1):
 	'''
+	describe optical flow in target area
 	img: original image
 	gray: gray scale image
-	flow: calculate optical flow array
-	step: adjust step interval 
+	flow: optical flow value array
+	active: target region
+	typeNum: 1: one color 2: two color
 	'''
-	height,width = img.shape[:2]
-	y,x = np.mgrid[step/2:height:step,step/2:width:step].reshape(2,-1).astype(int)
-	fx,fy = flow[y,x].T
-	#change amount array
-	opt_size = np.empty(len(fx))
-	for i in range(len(fx)):
-		opt_size[i] = (fx[i]**2 + fy[i]**2)**0.5
-	lines = np.vstack([x,y,x+fx,y+fy]).T.reshape(-1,2,2)
-	lines = np.int32(lines)
-	#decide accleration(red)/decleration(blue)
-	i = 0
-	prev = 0
-	for (x1,y1),(x2,y2) in lines:
-		if opt_size[i] > prev:
-			col = (0,0,255)
-		else:
-			col = (255,0,0)	
-	
-		cv2.line(img,(x1,y1),(x2,y2),col,1)
-		if (i+1)%width == 1:
-			prev = 0
-		else:	
-			prev = opt_size[i]
-		i += 1
-	return img	
-
-
-#describe optical flow in target area
-def partical_draw_flow(img,gray,flow,active,typeNum=1):
 	x,y = active[:,0],active[:,1]
 	fx,fy = flow[y,x].T
 	#change amount array
@@ -77,14 +49,12 @@ def partical_draw_flow(img,gray,flow,active,typeNum=1):
 			i += 1
 	return img
 
-#image segmentation
-def cut_img(img,y1,y2,x1,x2):
-	img = img[y1:y2,x1:x2]
-	return img
-
-
-#count target area cell in binary image by sstep interval
 def count_pixcel(img,step):
+	'''
+	count target area cell in binary image by step interval
+	img: original image
+	step: step interval
+	'''
 	height,width = img.shape[:2]
 	active = []
 	count = 0
@@ -97,30 +67,48 @@ def count_pixcel(img,step):
 	return active,count		
 
 
-#calculate mean (optival flow value) in target area
 def calc_mean(active,flow,num_pixcel):
+	'''
+	calculate mean (optical flow value) in target area
+	active: target area
+	num_pixcel: amount of pixcel in target area
+	'''
 	total = 0.0
 	for x,y in active:
 			total += ((flow[y,x][0])**2 + (flow[y,x][1]**2))**0.5 
 	return (total/num_pixcel)
 
-#calculate variance (optical flow value) in target area
 def calc_val(active,flow,num_pixcel,mean):
+	'''
+	calculate variance (optical flow value) in target area
+	active: target area
+	flow: optical flow value array
+	num_pixcel: amount of pixcel in target area
+	mean: mean value in target area
+	'''
 	val = 0.0
 	for x,y in active:
 		val += (mean - (flow[y,x][0]**2 + flow[y,x][1]**2)**0.5)**2
 	val = val/num_pixcel
 	return val
 		
-#display loding gage
 def show_gage(pointList,num):
+	'''
+	display loading gage
+	pointList: frame number list to change gage
+	num: amount of total frame 
+	'''
 	if num in pointList:
 		numIdx = pointList.index(num)+1
 		sys.stderr.write('\rWriting Rate:[{0}{1}] {2}%'.format('*'*numIdx,' '*(20-numIdx),numIdx*5))
 
 
-#plot mean and variance 
 def mean_val_plot(meanList,valList):
+	'''
+	plot mean and variance
+	meanList: mean value list
+	valList: variance value list
+	'''
 	plt.figure(figsize=(12,9))
 	#mean list
 	meanX = []
@@ -143,8 +131,11 @@ def mean_val_plot(meanList,valList):
 	plt.savefig('../image/opt.png')
 	plt.show()
 		
-#make argparse
 def make_parse():
+	'''
+	make argparse
+	no argument
+	'''
 	parser = argparse.ArgumentParser(prog='flow_opt.py',
 									usage='draw optical flow and mean/val graphs',
 									description='description',
@@ -159,6 +150,10 @@ def make_parse():
 
 if __name__ == '__main__':
 	make_parse()
+
+	#-------------------------------------------------------
+	#Pre processing
+	#------------------------------------------------------
 	#accept input and output file by argment
 	args = sys.argv
 	#recode processing time
@@ -191,7 +186,10 @@ if __name__ == '__main__':
 	mask = cv2.imread('../image/mask.png',0)
 	mask = cv2.merge((mask,mask,mask))
 	active,num_pixcel = count_pixcel(mask,8)
-	#main process
+
+	#-------------------------------------------------------
+	#Caluculate optical flow per frame
+	#------------------------------------------------------
 	while (cap.isOpened()):
 		ret,img = cap.read()
 		frameNum += 1
@@ -221,7 +219,9 @@ if __name__ == '__main__':
 	out.release()
 	cv2.destroyAllWindows()
 
-	
+	#-------------------------------------------------------
+	#Disply time and result
+	#-------------------------------------------------------	
 	elapsed_time = time.time() - start
 	minute = int(elapsed_time/60)
 	sec = int(elapsed_time - minute*60)
