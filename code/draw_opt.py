@@ -128,7 +128,7 @@ def mean_val_plot(meanList,valList):
 	plt.xlabel('time [s]')
 	plt.ylabel('variance')
 	plt.plot(valX,valList)
-	plt.savefig('../image/opt.png')
+	plt.savefig('../image/'+str(arg[1])+'.png')
 	plt.show()
 		
 def make_parse():
@@ -144,7 +144,7 @@ def make_parse():
 									)
 
 	parser.add_argument('Arg1: input file path',help='string',type=argparse.FileType('r'))
-	parser.add_argument('Arg2: output file path',help='string',type=argparse.FileType('w'))
+	#parser.add_argument('Arg2: output file path',help='string',type=argparse.FileType('w'))
 
 	args = parser.parse_args()
 
@@ -173,7 +173,8 @@ if __name__ == '__main__':
 	frameNum = 0
 	sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' '*20,0))
 	#output movie
-	out = cv2.VideoWriter(str(args[2]),fourcc,15.3,(width,height))
+	out = cv2.VideoWriter('../movie/out_'+str(args[1]).split('/')[-1]+'.mp4',\
+	fourcc,15.3,(width,height))
 	#initial frame
 	cap.set(cv2.CAP_PROP_POS_MSEC,3*1000)
 	ret,prev = cap.read()
@@ -208,8 +209,6 @@ if __name__ == '__main__':
 			#cv2.imshow('optical flow',flow_img)
 			show_gage(pointList,frameNum)
 			el_time = time.time()
-			if el_time - start > 600:
-				break
 
 			if cv2.waitKey(1)&0xff == 27:
 				break
