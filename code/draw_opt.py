@@ -118,6 +118,7 @@ def mean_val_plot(meanList,valList,fileName):
 	plt.title('Mean of optical flow')
 	plt.xlabel('time [s]')
 	plt.ylabel('mean')
+	plt.ylim(0.0,2.0)
 	plt.plot(meanX,meanList)
 	#variance list
 	valX = []
@@ -127,18 +128,18 @@ def mean_val_plot(meanList,valList,fileName):
 	plt.title('Variance of optical flow')
 	plt.xlabel('time [s]')
 	plt.ylabel('variance')
+	plt.ylim(0,10)
 	plt.plot(valX,valList)
 	plt.savefig('../image/'+fileName+'.png')
 	plt.show()
 
-def main(fileName):
+
+def main():
 	#-------------------------------------------------------
 	#Pre processing
 	#------------------------------------------------------
 	#accept input and output file by argment
 	args = sys.argv
-	#recode processing time
-	start = time.time()
 	#capture movie and data
 	cap = cv2.VideoCapture(fileName)
 	fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
@@ -189,7 +190,6 @@ def main(fileName):
 			out.write(flow_img)
 			#cv2.imshow('optical flow',flow_img)
 			show_gage(pointList,frameNum)
-			el_time = time.time()
 
 			if cv2.waitKey(1)&0xff == 27:
 				break
@@ -201,17 +201,18 @@ def main(fileName):
 	
 	mean_val_plot(meanList,valList,fileName)
 
-
 def make_parse():
 	'''
 	make argparse
 	no argument
 	'''
 	parser = argparse.ArgumentParser(prog='flow_opt.py',
-			description='description',
-									epilog='end',
-									add_help=True,
-									)
+						description='description',
+						usage='draw optical flow and mean/val graphs',
+						description='description',
+						epilog='end',
+						add_help=True,
+						)
 
 	parser.add_argument('Arg1: input file path',help='string',type=argparse.FileType('r'))
 	#parser.add_argument('Arg2: output file path',help='string',type=argparse.FileType('w'))
