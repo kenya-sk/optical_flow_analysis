@@ -130,7 +130,7 @@ def mean_val_plot(meanList,valList,fileName):
 	plt.ylabel('variance')
 	plt.ylim(0,10)
 	plt.plot(valX,valList)
-	plt.savefig('../image/'+fileName+'.png')
+	plt.savefig('../image/'+fileName.split('.')[0]+'.png')
 	plt.show()
 
 
@@ -155,7 +155,7 @@ def main():
 	frameNum = 0
 	sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' '*20,0))
 	#output movie
-	out = cv2.VideoWriter('../movie/out_'+fileName.split('/')[-1]+'.mp4',\
+	out = cv2.VideoWriter('../movie/out_'+fileName.split('/')[-1],\
 	fourcc,15.3,(width,height))
 	#initial frame
 	cap.set(cv2.CAP_PROP_POS_MSEC,3*1000)
