@@ -207,7 +207,6 @@ def make_parse():
 	no argument
 	'''
 	parser = argparse.ArgumentParser(prog='flow_opt.py',
-						description='description',
 						usage='draw optical flow and mean/val graphs',
 						description='description',
 						epilog='end',

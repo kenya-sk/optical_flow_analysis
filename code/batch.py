@@ -4,7 +4,8 @@
 import sys
 import numpy as np
 import os
-import draw_flow
+import draw_opt
+import cv2
 
 def batch_processing():
 	#--------------------------------------------------
@@ -26,7 +27,7 @@ def batch_processing():
 	for file_name in fileList:
 		if file_name.find('mp4') > 0:
 			inputFile = direc + '/' + file_name
-			draw_flow.main(inputFile)
+			draw_opt.main(inputFile)
 
 if __name__ == '__main__':
 	batch_processing()
