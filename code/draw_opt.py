@@ -134,12 +134,10 @@ def mean_val_plot(meanList,valList,fileName):
 	plt.show()
 
 
-def main():
+def main(fileName):
 	#-------------------------------------------------------
 	#Pre processing
 	#------------------------------------------------------
-	#accept input and output file by argment
-	args = sys.argv
 	#capture movie and data
 	cap = cv2.VideoCapture(fileName)
 	fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
