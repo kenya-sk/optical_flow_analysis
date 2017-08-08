@@ -118,6 +118,7 @@ def mean_val_plot(meanList,valList):
 	plt.title('Mean of optical flow')
 	plt.xlabel('time [s]')
 	plt.ylabel('mean')
+	plt.ylim(0.0,2.0)
 	plt.plot(meanX,meanList)
 	#variance list
 	valX = []
@@ -127,37 +128,16 @@ def mean_val_plot(meanList,valList):
 	plt.title('Variance of optical flow')
 	plt.xlabel('time [s]')
 	plt.ylabel('variance')
+	plt.ylim(0,10)
 	plt.plot(valX,valList)
-	plt.savefig('../image/'+str(arg[1])+'.png')
-	plt.show()
-		
-def make_parse():
-	'''
-	make argparse
-	no argument
-	'''
-	parser = argparse.ArgumentParser(prog='flow_opt.py',
-									usage='draw optical flow and mean/val graphs',
-									description='description',
-									epilog='end',
-									add_help=True,
-									)
+	plt.savefig('../image/'+str(args[1])+'.png')
 
-	parser.add_argument('Arg1: input file path',help='string',type=argparse.FileType('r'))
-	#parser.add_argument('Arg2: output file path',help='string',type=argparse.FileType('w'))
-
-	args = parser.parse_args()
-
-if __name__ == '__main__':
-	make_parse()
-
+def main():
 	#-------------------------------------------------------
 	#Pre processing
 	#------------------------------------------------------
 	#accept input and output file by argment
 	args = sys.argv
-	#recode processing time
-	start = time.time()
 	#capture movie and data
 	cap = cv2.VideoCapture(str(args[1]))
 	fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
@@ -173,7 +153,7 @@ if __name__ == '__main__':
 	frameNum = 0
 	sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' '*20,0))
 	#output movie
-	out = cv2.VideoWriter('../movie/out_'+str(args[1]).split('/')[-1]+'.mp4',\
+	out = cv2.VideoWriter('../movie/out_'+str(args[1]).split('/')[-1],\
 	fourcc,15.3,(width,height))
 	#initial frame
 	cap.set(cv2.CAP_PROP_POS_MSEC,3*1000)
@@ -208,7 +188,6 @@ if __name__ == '__main__':
 			out.write(flow_img)
 			#cv2.imshow('optical flow',flow_img)
 			show_gage(pointList,frameNum)
-			el_time = time.time()
 
 			if cv2.waitKey(1)&0xff == 27:
 				break
@@ -218,6 +197,30 @@ if __name__ == '__main__':
 	out.release()
 	cv2.destroyAllWindows()
 
+	mean_val_plot(meanList,valList)
+
+		
+def make_parse():
+	'''
+	make argparse
+	no argument
+	'''
+	parser = argparse.ArgumentParser(prog='flow_opt.py',
+									usage='draw optical flow and mean/val graphs',
+									description='description',
+									epilog='end',
+									add_help=True,
+									)
+
+	parser.add_argument('Arg1: input file path',help='string',type=argparse.FileType('r'))
+	#parser.add_argument('Arg2: output file path',help='string',type=argparse.FileType('w'))
+
+	args = parser.parse_args()
+
+if __name__ == '__main__':
+	make_parse()
+	start = time.time()
+	main()
 	#-------------------------------------------------------
 	#Disply time and result
 	#-------------------------------------------------------	
@@ -225,5 +228,4 @@ if __name__ == '__main__':
 	minute = int(elapsed_time/60)
 	sec = int(elapsed_time - minute*60)
 	print('\nelapsed_time: {0}分{1}秒'.format(minute,sec))
-	
-	mean_val_plot(meanList,valList)
+
