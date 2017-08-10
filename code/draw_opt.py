@@ -3,7 +3,7 @@
 
 import numpy as np
 import cv2
-import pylab as plt
+import matplotlib as plt
 import time
 import sys
 import argparse
