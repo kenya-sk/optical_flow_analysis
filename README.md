@@ -9,9 +9,9 @@ conda install -c https://conda.anaconda.org/menpo opencv3
 ```
 
 ### exec
-0. draw_flow.py
+1. draw_flow.py
     * caluculate optical flow and mean/variance
-1. batch.py
+2. batch.py
     * plocess many files at ones
 
 
