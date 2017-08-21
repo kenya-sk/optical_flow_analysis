@@ -12,7 +12,7 @@ conda install -c https://conda.anaconda.org/menpo opencv3
 1. draw_flow.py
     * caluculate optical flow and mean/variance
 2. batch.py
-    * plocess many files at ones
+    * process many files at ones
 
 
 ## info
