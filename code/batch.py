@@ -6,6 +6,7 @@ import numpy as np
 import os
 import draw_opt
 import cv2
+import re
 
 def batch_processing():
 	#--------------------------------------------------
@@ -24,8 +25,10 @@ def batch_processing():
 	#------------------------------------------------	
 	direc = '/Volumes/HDD-IO/Tuna_conv/'+date
 	fileList = os.listdir(direc)
+	pattern = r'^(?!._).*(.mp4)$'
+	repattern = re.compile(pattern)
 	for file_name in fileList:
-		if file_name.find('mp4') > 0:
+		if re.search(repattern,file_name):
 			inputFile = direc + '/' + file_name
 			draw_opt.main(inputFile)
 
