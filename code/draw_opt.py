@@ -3,7 +3,7 @@
 
 import numpy as np
 import cv2
-import pylab as plt
+import matplotlib.pyplot as plt
 import time
 import sys
 import argparse
@@ -100,10 +100,10 @@ def show_gage(pointList,num):
 	'''
 	if num in pointList:
 		numIdx = pointList.index(num)+1
-		sys.stderr.write('\rWriting Rate:[{0}{1}] {2}%'.format('*'*numIdx,' '*(20-numIdx),numIdx*5))
+		sys.stderr.write('\rWriting Rate:[{0}{1}] {2}%'.format('*'*numIdx*2,' '*(20-numIdx),numIdx*10))
 
 
-def mean_val_plot(meanList,valList,fileName):
+def mean_val_plot(meanList,valList,filePath):
 	'''
 	plot mean and variance
 	meanList: mean value list
@@ -130,16 +130,17 @@ def mean_val_plot(meanList,valList,fileName):
 	plt.ylabel('variance')
 	plt.ylim(0,10)
 	plt.plot(valX,valList)
-	plt.savefig('../image/'+fileName.split('.')[0]+'.png')
-	plt.show()
+	fileName = filePath.split('/')[-1].split('.')[0]+'.png' 
+	plt.savefig('../image/20170429_13_15/'+fileName)
+	print(fileName + ' graph success !')
 
 
-def main(fileName):
+def main(filePath):
 	#-------------------------------------------------------
 	#Pre processing
 	#------------------------------------------------------
 	#capture movie and data
-	cap = cv2.VideoCapture(fileName)
+	cap = cv2.VideoCapture(filePath)
 	fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
 	fps = cap.get(cv2.CAP_PROP_FPS)
 	height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -153,7 +154,7 @@ def main(fileName):
 	frameNum = 0
 	sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' '*20,0))
 	#output movie
-	out = cv2.VideoWriter('../movie/out_'+fileName.split('/')[-1],\
+	out = cv2.VideoWriter('../movie/out_'+filePath.split('/')[-1],\
 	fourcc,15.3,(width,height))
 	#initial frame
 	cap.set(cv2.CAP_PROP_POS_MSEC,3*1000)
@@ -164,7 +165,7 @@ def main(fileName):
 	#variance value list per frame
 	valList = []
 	#store pixcel of the target area and their number 
-	mask = cv2.imread('../image/mask.png',0)
+	mask = cv2.imread('../image/image_data/mask.png',0)
 	mask = cv2.merge((mask,mask,mask))
 	active,num_pixcel = count_pixcel(mask,8)
 
@@ -197,7 +198,7 @@ def main(fileName):
 	out.release()
 	cv2.destroyAllWindows()
 	
-	mean_val_plot(meanList,valList,fileName)
+	mean_val_plot(meanList,valList,filePath)
 
 def make_parse():
 	'''
