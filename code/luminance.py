@@ -34,16 +34,19 @@ def diff_luminance(prevImg,img,activeArray):
             luminanceArray = np.append(luminanceArray, l)
         return luminanceArray
 
+    luminanceThresh = 200
     prevLuminanceArray = get_luminance(prevImg,activeArray)
     LuminanceArray = get_luminance(img,activeArray)
     diffArray = LuminanceArray - prevLuminanceArray
-    return diffArray
+    if np.max(diffArray) >= luminanceThresh:
+        return True
+    return False
 
 
 def elapsed_time(start):
     elapsed = time.time() - start
-    minute = int(elapse/60)
-    sec = int(elapse - minute*60)
+    minute = int(elapsed/60)
+    sec = int(elapsed - minute*60)
     print("\nelapsed time: {0}分{1}秒".format(minute,sec))
 
 def main(filePath):
@@ -66,14 +69,15 @@ def main(filePath):
         ret, img = cap.read()
         if ret:
             frameNum += 1
-            diff_luminance(prevImg, img, activeArray)
+            if diff_luminance(prevImg, img, activeArray):
+                flashList.append(frameNum)
             prevImg = img
             sys.stderr.write("\rProcessing Rate: {0}/{1}".format(frameNum,totalFrame))
         else:
             break
     cap.release()
     cv2.destroyAllWindows()
-    return flashList
+    print(flashList)
 
 
 if __name__ == "__main__":
@@ -81,4 +85,3 @@ if __name__ == "__main__":
     args=sys.argv
     main(args[1])
     elapsed_time(start)
-    
