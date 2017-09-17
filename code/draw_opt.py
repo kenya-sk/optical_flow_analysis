@@ -8,6 +8,15 @@ import time
 import sys
 import argparse
 
+import get_frameList
+import plot_graph
+
+FOURCC = None
+FPS = None
+HEIGHT = None
+WIDTH = None
+TOTALFRAME = None
+
 
 def partical_draw_flow(img, gray, flow, active, typeNum=1):
     '''
@@ -56,11 +65,10 @@ def count_pixcel(img, step):
     img: original image
     step: step interval
     '''
-    height, width = img.shape[:2]
     active = []
     count = 0
-    for x in range(int(step / 2), width, step):
-        for y in range(int(step / 2), height, step):
+    for x in range(int(step / 2), WIDTH, step):
+        for y in range(int(step / 2), HEIGHT, step):
             if img[y, x][0] == 255:
                 active.append([x, y])
                 count += 1
@@ -95,46 +103,6 @@ def calc_val(active, flow, num_pixcel, mean):
     return val
 
 
-def mean_val_plot(meanList, valList, filePath, frameList):
-    '''
-    plot mean and variance
-    meanList: mean value list
-    valList: variance value list
-    frameList: two dimention list
-    '''
-    def fill_region(frameList):
-        if len(frameList) != 0:
-            for fram in frameList:
-                plt.axvspan(fram[0], fram[1], facecolor = 'y', alpha = 0.5)
-
-    plt.figure(figsize=(12, 9))
-    # mean list
-    meanX = []
-    for i in range(len(meanList)):
-        meanX.append(i / 15.3)
-    plt.subplot(2, 1, 1)
-    plt.title('Mean of optical flow')
-    plt.xlabel('time [s]')
-    plt.ylabel('mean')
-    plt.ylim(0.0, 2.0)
-    plt.plot(meanX, meanList)
-    fill_region(frameList)
-    # variance list
-    valX = []
-    for i in range(len(valList)):
-        valX.append(i / 15.3)
-    plt.subplot(2, 1, 2)
-    plt.title('Variance of optical flow')
-    plt.xlabel('time [s]')
-    plt.ylabel('variance')
-    plt.ylim(0, 10)
-    plt.plot(valX, valList)
-    fill_region(frameList)
-    fileName = filePath.split('/')[-1].split('.')[0] + '.png'
-    plt.savefig('../image/20170429_13_15/' + fileName)
-    print('\n'+fileName + ' graph success !\n')
-
-
 def show_gage(pointList, num):
     '''
     display loading gage
@@ -147,41 +115,31 @@ def show_gage(pointList, num):
             '*' * numIdx * 2, ' ' * (20 - numIdx), numIdx * 10))
 
 
-def time_to_frame(fps,timeFilePath):
-    subList = []
-    frameList = []
-    with open (timeFilePath,"r") as f:
-        time = f.readlines()
-        for i in range(len(time)):
-            if time[i] != "\n":
-                subList.append(int(time[i].strip("\n")))
-            else:
-                frameList.append(subList)
-                subList = []
-        frameList.append(subList)                
-    return(frameList)
-
-
 def main(filePath):
+    global FOURCC
+    global FPS
+    global HEIGHT
+    global WIDTH
+    global TOTALFRAME
     #-------------------------------------------------------
     # pre processing
     #------------------------------------------------------
     # capture movie and data
     cap = cv2.VideoCapture(filePath)
-    fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
-    fps = int(cap.get(cv2.CAP_PROP_FPS)/2)
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    totalFrame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    FOURCC = int(cv2.VideoWriter_fourcc(*'avc1'))
+    FPS = int(cap.get(cv2.CAP_PROP_FPS)/2)
+    HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    TOTALFRAME = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     # preprocessing for loding gage
-    point = int(totalFrame / 20)
+    point = int(TOTALFRAME / 20)
     pointList = []
-    for i in range(point, totalFrame, point):
+    for i in range(point, TOTALFRAME, point):
         pointList.append(i)
     sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' ' * 20, 0))
     # output movie
     out = cv2.VideoWriter('../movie/out_' + filePath.split('/')[-1],
-    fourcc, fps, (width, height))
+    FOURCC, FPS, (WIDTH, HEIGHT))
     # initial frame
     cap.set(cv2.CAP_PROP_POS_MSEC, 3 * 1000)
     ret, prev = cap.read()
@@ -195,25 +153,10 @@ def main(filePath):
     mask = cv2.merge((mask, mask, mask))
     active, num_pixcel = count_pixcel(mask, 2)
 
-    #----------------------------------------------------
-    # pre processing for sparse optical flow
-    #----------------------------------------------------
-    # corner detection parameter of Shi-Tomasi
-    feature_params = dict(maxCorners = 200,
-                            qualityLevel = 0.001,
-                            minDistance = 10,
-                            blockSize = 5)
-    # parameter of Lucas-Kanade method
-    lk_params = dict(winSize = (20,20),
-                     maxLevel = 5,
-                     criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,10,0.03))
-    color = np.random.randint(0,255, 255)
-    prevFeature = cv2.goodFeaturesToTrack(prevGray,mask=None,**feature_params)
-
-	#-------------------------------------------------------
-	# caluculate optical flow per frame
-	#------------------------------------------------------
-    framNum = 0
+    #-------------------------------------------------------
+    # caluculate optical flow per frame
+    #------------------------------------------------------
+    frameNum = 0
     while (cap.isOpened()):
         ret,img = cap.read()
         frameNum += 1
@@ -228,26 +171,10 @@ def main(filePath):
             # make optical flow image
             flow_img = partical_draw_flow(img,gray,flow,active,1)
             # restore and display
-            out.write(flow_img)
+            #out.write(flow_img)
             show_gage(pointList,frameNum)
-            
-            """
-            gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            nextFeature, status, err = cv2.calcOpticalFlowPyrLK(prevGray, gray, prevFeature, None, **lk_params)
-            
-            prevGood = prevFeature[status == 1]
-            nextGood = nextFeature[status == 1]
-
-            for i, (next_point,prev_point) in enumerate(zip(nextGood, prevGood)):
-                prevX, prevY = prev_point.ravel()
-                nextX, nextY = next_point.ravel()
-                img = cv2.circle(img, (nextX,nextY), 5, (0,0,255),-1)
-            out.write(img)
-
-            prevGray = gray.copy()
-            prevFeature = nextGood.reshape(-1,1,2)
-            """
-
+            if frameNum >= 10:
+                break
             if cv2.waitKey(1)&0xff == 27:
                 break
         else:
@@ -255,40 +182,39 @@ def main(filePath):
     cap.release()
     out.release()
     cv2.destroyAllWindows()
-	
-    framList = [[0,0]]
-    mean_val_plot(meanList,valList,filePath,framList)
+
+    #frameList = get_frameList.get_frameList(fps, "/Users/sakka/flow/code/flushSec.txt")
+    frameList = [30, 50, 60, 60, 100, 200]
+    plot_graph.mean_val_plot(meanList, valList, filePath, frameList, FPS)
 
 
 
 def make_parse():
-	'''
-	make argparse
-	no argument
-	'''
-	parser = argparse.ArgumentParser(prog='flow_opt.py',
-						usage='draw optical flow and mean/val graphs',
-						description='description',
-						epilog='end',
-						add_help=True,
-						)
+    '''
+    make argparse
+    no argument
+    '''
+    parser = argparse.ArgumentParser(prog='flow_opt.py',
+                        usage='draw optical flow and mean/val graphs',
+                        description='description',
+                        epilog='end',
+                        add_help=True,
+                        )
 
-	parser.add_argument('Arg1: input file path',help='string',type=argparse.FileType('r'))
-	# parser.add_argument('Arg2: output file path',help='string',type=argparse.FileType('w'))
+    parser.add_argument('Arg1: input file path',help='string',type=argparse.FileType('r'))
 
-	args = parser.parse_args()
+    args = parser.parse_args()
 
 
 if __name__ == '__main__':
-	make_parse()
-	start = time.time()
-	args = sys.argv
-	main(args[1])
-	#-------------------------------------------------------
-	# Disply time and result
-	#-------------------------------------------------------	
-	elapsed_time = time.time() - start
-	minute = int(elapsed_time/60)
-	sec = int(elapsed_time - minute*60)
-	print('\nelapsed_time: {0}分{1}秒'.format(minute,sec))
-
+    make_parse()
+    start = time.time()
+    args = sys.argv
+    main(args[1])
+    #-------------------------------------------------------
+    # Disply time and result
+    #-------------------------------------------------------
+    elapsed_time = time.time() - start
+    minute = int(elapsed_time/60)
+    sec = int(elapsed_time - minute*60)
+    print('\nelapsed_time: {0}分{1}秒'.format(minute,sec))
