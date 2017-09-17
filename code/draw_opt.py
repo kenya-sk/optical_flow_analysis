@@ -115,7 +115,7 @@ def show_gage(pointList, num):
             '*' * numIdx * 2, ' ' * (20 - numIdx), numIdx * 10))
 
 
-def main(filePath):
+def main(filePath, frameList):
     global FOURCC
     global FPS
     global HEIGHT
@@ -173,20 +173,14 @@ def main(filePath):
             # restore and display
             #out.write(flow_img)
             show_gage(pointList,frameNum)
-            if frameNum >= 10:
-                break
             if cv2.waitKey(1)&0xff == 27:
                 break
         else:
             break
+    plot_graph.mean_val_plot(meanList, valList, filePath, frameList, FPS)
     cap.release()
     out.release()
     cv2.destroyAllWindows()
-
-    #frameList = get_frameList.get_frameList(fps, "/Users/sakka/flow/code/flushSec.txt")
-    frameList = [30, 50, 60, 60, 100, 200]
-    plot_graph.mean_val_plot(meanList, valList, filePath, frameList, FPS)
-
 
 
 def make_parse():
@@ -205,7 +199,7 @@ def make_parse():
 
     args = parser.parse_args()
 
-
+"""
 if __name__ == '__main__':
     make_parse()
     start = time.time()
@@ -218,3 +212,4 @@ if __name__ == '__main__':
     minute = int(elapsed_time/60)
     sec = int(elapsed_time - minute*60)
     print('\nelapsed_time: {0}分{1}秒'.format(minute,sec))
+"""
