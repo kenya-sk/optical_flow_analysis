@@ -22,7 +22,7 @@ def batch_processing():
         sys.exit(1)
 
     #get flush event time list
-    flushList = get_frameList.get_frameList(14, "./flushSec.txt")
+    flushList = get_frameList.get_frameList("./flushSec.txt")
 
     #-------------------------------------------------
     #processing all data

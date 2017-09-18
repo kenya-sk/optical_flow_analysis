@@ -45,5 +45,5 @@ def mean_val_plot(meanList, valList, filePath, frameList, fps):
     plt.plot(valX, valList)
     fill_region(frameList)
     fileName = filePath.split('/')[-1].split('.')[0] + '.png'
-    plt.savefig('../image/20170429/' + fileName)
+    plt.savefig('../image/20170429_2/' + fileName)
     print('\n'+fileName + ' graph success !\n')

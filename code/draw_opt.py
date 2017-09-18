@@ -138,8 +138,8 @@ def main(filePath, frameList):
         pointList.append(i)
     sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' ' * 20, 0))
     # output movie
-    out = cv2.VideoWriter('../movie/out_' + filePath.split('/')[-1],
-    FOURCC, FPS, (WIDTH, HEIGHT))
+    #out = cv2.VideoWriter('../movie/out_' + filePath.split('/')[-1],
+    #FOURCC, FPS, (WIDTH, HEIGHT))
     # initial frame
     cap.set(cv2.CAP_PROP_POS_MSEC, 3 * 1000)
     ret, prev = cap.read()
@@ -151,7 +151,7 @@ def main(filePath, frameList):
     # store pixcel of the target area and their number
     mask = cv2.imread('../image/image_data/mask.png', 0)
     mask = cv2.merge((mask, mask, mask))
-    active, num_pixcel = count_pixcel(mask, 2)
+    active, num_pixcel = count_pixcel(mask, 16)
 
     #-------------------------------------------------------
     # caluculate optical flow per frame
@@ -169,7 +169,7 @@ def main(filePath, frameList):
             val = calc_val(active,flow,num_pixcel,mean)
             valList.append(val)
             # make optical flow image
-            flow_img = partical_draw_flow(img,gray,flow,active,1)
+            #flow_img = partical_draw_flow(img,gray,flow,active,1)
             # restore and display
             #out.write(flow_img)
             show_gage(pointList,frameNum)
@@ -198,7 +198,6 @@ def make_parse():
     parser.add_argument('Arg1: input file path',help='string',type=argparse.FileType('r'))
 
     args = parser.parse_args()
-
 """
 if __name__ == '__main__':
     make_parse()

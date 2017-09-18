@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 import sys
 
-def get_frameList(fps, timeFilePath):
+def get_frameList(timeFilePath):
     subList = []
     frameList = []
     with open(timeFilePath, "r") as f:
@@ -14,8 +14,8 @@ def get_frameList(fps, timeFilePath):
             if len(time[i]) >= 9:
                 continue
             elif len(time[i]) >= 3:
-                subList.append(fps*int(time[i].strip("¥n").split("-")[0]))
-                subList.append(fps*int(time[i].strip("¥n").split("-")[1]))
+                subList.append(int(time[i].strip("¥n").split("-")[0]))
+                subList.append(int(time[i].strip("¥n").split("-")[1]))
             else:
                 frameList.append(subList)
                 subList = []
