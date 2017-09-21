@@ -9,8 +9,16 @@ conda install -c https://conda.anaconda.org/menpo opencv3
 ```
 
 ### exec
-0. draw_flow.py
+1. draw_flow.py
     * caluculate optical flow and mean/variance
+2. batch.py
+    * process many files at ones
+3. plot_graph.py
+    * plot graphs of mean and variance by optical flow
+4. get_frameList.py
+    * get the frame number when event occurred 
+5. luminance.py
+    * get luminance by differential between two frames
 
 
 ## info
