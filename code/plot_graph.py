@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def mean_val_plot(meanList, valList, filePath, frameList, fps):
+def mean_val_plot(meanList, valList, filePath, fps):
     '''
     plot mean and variance
     meanList: mean value list
@@ -31,7 +31,7 @@ def mean_val_plot(meanList, valList, filePath, frameList, fps):
     plt.xlim(0.0, 300.0)
     plt.ylim(0.0, 2.0)
     plt.plot(meanX, meanList)
-    fill_region(frameList)
+    #fill_region(frameList)
     # variance list
     valX = []
     for i in range(len(valList)):
@@ -43,7 +43,7 @@ def mean_val_plot(meanList, valList, filePath, frameList, fps):
     plt.xlim(0.0, 300.0)
     plt.ylim(0, 10)
     plt.plot(valX, valList)
-    fill_region(frameList)
+    #fill_region(frameList)
     fileName = filePath.split('/')[-1].split('.')[0] + '.png'
     plt.savefig('../image/20170429_2/' + fileName)
     print('\n'+fileName + ' graph success !\n')
