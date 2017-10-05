@@ -74,6 +74,14 @@ def density_flow(filePath, output=False):
         flow = cv2.calcOpticalFlowFarneback(prevGray,gray,None,0.5,3,15,3,5,1.2,0)
         return flow
 
+    def calc_norm(maskFlow, step=8):
+        x, y = np.mgrid[step/2:WIDTH:step, step/2:HEIGHT:step].reshape(2,-1).astype(int)
+        fx, fy = maskFlow[y, x].T
+        normFx = fx**2
+        normFy = fy**2
+        flowNorm = (normFx + normFy)**0.5
+        return flowNorm
+
     #-------------------------------------------------------
     # preprocessing
     #-------------------------------------------------------
@@ -101,9 +109,10 @@ def density_flow(filePath, output=False):
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             flow = calc_flow(prevGray, gray)
             maskFlow = flow*mask
-            mean = np.mean(maskFlow)
+            flowNorm = calc_norm(maskFlow, 8)
+            mean = np.mean(flowNorm)
             meanList.append(mean)
-            var = np.var(maskFlow)
+            var = np.var(flowNorm)
             varList.append(var)
             if output:
                 flow_img = draw_flow(img, maskFlow, 8)
@@ -122,8 +131,6 @@ def density_flow(filePath, output=False):
     cap.release()
     out.release()
     cv2.destroyAllWindows()
-    print("meanList = {}".format(meanList))
-    print("varList = {}".format(varList))
 
     return meanList, varList
 
