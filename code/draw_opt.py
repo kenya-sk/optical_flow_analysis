@@ -57,7 +57,7 @@ def density_flow(filePath, output=False):
     global FPS
 
     def init_gage(totalFrame):
-        point = int(totalFrame / 10)
+        point = int(totalFrame / 20)
         pointList = []
         for i in range(point, totalFrame, point):
             pointList.append(i)
@@ -80,6 +80,7 @@ def density_flow(filePath, output=False):
         normFx = fx**2
         normFy = fy**2
         flowNorm = (normFx + normFy)**0.5
+        flowNorm = flowNorm[flowNorm > 0]
         return flowNorm
 
     #-------------------------------------------------------
@@ -110,32 +111,33 @@ def density_flow(filePath, output=False):
             flow = calc_flow(prevGray, gray)
             maskFlow = flow*mask
             flowNorm = calc_norm(maskFlow, 8)
-            mean = np.mean(flowNorm)
+            try:
+                mean = np.mean(flowNorm)
+            except RuntimeWarning:
+                print(frameNum)
             meanList.append(mean)
             var = np.var(flowNorm)
             varList.append(var)
             if output:
                 flow_img = draw_flow(img, maskFlow, 8)
                 out.write(flow_img)
-                cv2.imshow("flow_img", flow_img)
+                cv2.imshow("flow img", flow_img)
             else:
                 pass
             show_gage(pointList,frameNum)
             prevGray = gray
             if cv2.waitKey(1)&0xff == 27:
                 break
-            if frameNum == 150:
-                break
         else:
             break
     cap.release()
-    out.release()
+    if output:  out.release()
     cv2.destroyAllWindows()
 
     return meanList, varList
 
 def main(filePath):
-    meanList, varList = density_flow(filePath, True)
+    meanList, varList = density_flow(filePath, False)
     plot_graph.mean_val_plot(meanList, varList, filePath, FPS)
 
 
