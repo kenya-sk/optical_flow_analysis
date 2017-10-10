@@ -47,8 +47,7 @@ def show_gage(pointList, num):
     '''
     if num in pointList:
         numIdx = pointList.index(num) + 1
-        sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(
-            '*' * numIdx, numIdx * 10))
+        sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format('*' * numIdx, numIdx * 10))
 
 
 def density_flow(filePath, output=False):
