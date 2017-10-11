@@ -15,6 +15,10 @@ FPS = None
 HEIGHT = None
 WIDTH = None
 
+class FeatureError(Exception):
+    def __init__(self, value):
+        self.value = value
+
 def set_capture(filePath):
     cap = cv2.VideoCapture(filePath)
     fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
@@ -24,7 +28,7 @@ def set_capture(filePath):
     totalFrame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     return cap, fourcc, fps, height, width, totalFrame
 
-def draw_flow(img, maskFlow, step=8):
+def draw_dense_flow(img, maskFlow, step=8):
     '''
     describe optical flow in masked area
     img: original image
@@ -50,7 +54,7 @@ def show_gage(pointList, num):
         sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format('*' * numIdx, numIdx * 10))
 
 
-def density_flow(filePath, output=False):
+def calc_flow(filePath, output=False):
     global HEIGHT
     global WIDTH
     global FPS
@@ -65,13 +69,61 @@ def density_flow(filePath, output=False):
 
     def load_mask(filepath):
         mask = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
-        mask = cv2.merge((mask, mask))
+        #mask = cv2.merge((mask, mask))
         mask[mask==255] = 1
         return mask
 
-    def calc_flow(prevGray, gray):
+    def calc_dense_flow(prevGray, gray):
         flow = cv2.calcOpticalFlowFarneback(prevGray,gray,None,0.5,3,15,3,5,1.2,0)
         return flow
+
+    def set_sparse_parm():
+        #corner detection parameter of Shi-Tomasi
+        feature_params = dict(maxCorners = 200,
+                                qualityLevel = 0.001,
+                                minDistance = 10,
+                                blockSize = 5)
+        #parameter of Lucas-Kanade method
+        lk_params = dict(winSize = (20, 20),
+                            maxLevel = 5,
+                            criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+        return feature_params, lk_params
+
+    def get_feature(prevGray, gray, feature_params, lk_params, mask=None):
+        prevFeatureFiltered = np.array([0])
+        nextFeatureFiltered = np.array([0])
+        if mask is None:
+            prevFeature = cv2.goodFeaturesToTrack(prevGray, mask=None, **feature_params)
+        else:
+            prevFeature = cv2.goodFeaturesToTrack(prevGray, mask=mask, **feature_params)
+        nextFeature, status, err = cv2.calcOpticalFlowPyrLK(prevGray, gray, prevFeature, None, **lk_params)
+        prevFeatureFiltered = prevFeature[status == 1]
+        nextFeatureFiltered = nextFeature[status == 1]
+        return prevFeatureFiltered, nextFeatureFiltered
+
+
+    def calc_sparse_flow(prevFeatureFiltered, nextFeatureFiltered):
+        sparseFlow = np.zeros((nextFeatureFiltered.shape[0],3))
+        try:
+            if prevFeatureFiltered.shape[0] == 0:
+                raise FeatureError("Not detect feature")
+            for i, (prevPoint, nextPoint) in enumerate(zip(prevFeatureFiltered, nextFeatureFiltered)):
+                prevX, prevY = prevPoint.ravel()
+                nextX, nextY = nextPoint.ravel()
+                sparseFlow[i][0] = nextX - prevX
+                sparseFlow[i][1] = nextY - prevY
+        except FeatureError:
+            pass
+        return sparseFlow
+
+    def make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered):
+        for i, (nextPoint, prevPoint) in enumerate(zip(nextFeatureFiltered, prevFeatureFiltered)):
+            prevX, prevY = prevPoint.ravel()
+            nextX, nextY = nextPoint.ravel()
+            flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 0, 255), 2)
+            img = cv2.circle(img, (nextX, nextY), 3, (0, 0, 255), -1)
+        flowImg = cv2.add(img, flowMask)
+        return flowImg
 
     def calc_norm(maskFlow, step=8):
         x, y = np.mgrid[step/2:WIDTH:step, step/2:HEIGHT:step].reshape(2,-1).astype(int)
@@ -97,7 +149,9 @@ def density_flow(filePath, output=False):
     prevGray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
     meanList = []
     varList = []
+    feature_params, lk_params = set_sparse_parm()
     mask = load_mask('../image/image_data/mask.png')
+    flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
     #-------------------------------------------------------
     # caluculate optical flow per frame
     #-------------------------------------------------------
@@ -107,7 +161,8 @@ def density_flow(filePath, output=False):
         frameNum += 1
         if ret == True:
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            flow = calc_flow(prevGray, gray)
+            """
+            flow = calc_dense_flow(prevGray, gray)
             maskFlow = flow*mask
             flowNorm = calc_norm(maskFlow, 8)
             try:
@@ -117,10 +172,18 @@ def density_flow(filePath, output=False):
             meanList.append(mean)
             var = np.var(flowNorm)
             varList.append(var)
+            """
+            prevFeatureFiltered, nextFeatureFiltered = get_feature(prevGray, gray, feature_params, lk_params, mask)
+            sparseFlow = calc_sparse_flow(prevFeatureFiltered, nextFeatureFiltered)
             if output:
-                flow_img = draw_flow(img, maskFlow, 8)
-                out.write(flow_img)
-                cv2.imshow("flow img", flow_img)
+                #flowImg = draw_dense_flow(img, maskFlow, 8)
+                if frameNum % 15 == 0:
+                    flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
+                else:
+                    pass
+                flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered)
+                out.write(flowImg)
+                #cv2.imshow("flow img", flowImg)
             else:
                 pass
             show_gage(pointList,frameNum)
@@ -136,8 +199,8 @@ def density_flow(filePath, output=False):
     return meanList, varList
 
 def main(filePath):
-    meanList, varList = density_flow(filePath, False)
-    plot_graph.mean_val_plot(meanList, varList, filePath, FPS)
+    meanList, varList = calc_flow(filePath, True)
+    #plot_graph.mean_val_plot(meanList, varList, filePath, FPS)
 
 
 def make_parse():

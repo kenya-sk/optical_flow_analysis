@@ -69,7 +69,7 @@ def make_cumulative_video(filePath, windowSize=5):
                 cmlFlow_arr = calc_cumulative_flow(cmlFlow_arr, flow)
                 cmlImg = draw_cumulative_flow(img_arr[0], cmlFlow_arr[:5,:,:,:], step=8)
                 output.write(cmlImg)
-                cv2.imshow("cmlImg", cmlImg)
+                #cv2.imshow("cmlImg", cmlImg)
                 cmlFlow_arr = np.delete(cmlFlow_arr, 0, 0)
                 img_arr = np.delete(img_arr, 0, 0)
                 img_arr = np.vstack((img_arr, img.reshape(1,HEIGHT, WIDTH, 3)))
