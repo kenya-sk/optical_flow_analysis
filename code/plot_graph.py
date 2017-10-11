@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def mean_val_plot(meanList, valList, filePath, fps):
+def mean_val_plot(meanList, valList, filePath):
     '''
     plot mean and variance
     meanList: mean value list
@@ -23,27 +23,40 @@ def mean_val_plot(meanList, valList, filePath, fps):
     # mean list
     meanX = []
     for i in range(len(meanList)):
-        meanX.append(i / fps)
+        meanX.append(i)
     plt.subplot(2, 1, 1)
     plt.title('Mean of optical flow')
     plt.xlabel('time [s]')
     plt.ylabel('mean')
     plt.xlim(0.0, 300.0)
-    plt.ylim(0.0, 2.0)
+    #plt.ylim(0.0, 2.0)
     plt.plot(meanX, meanList)
     #fill_region(frameList)
     # variance list
     valX = []
     for i in range(len(valList)):
-        valX.append(i / fps)
+        valX.append(i)
     plt.subplot(2, 1, 2)
     plt.title('Variance of optical flow')
     plt.xlabel('time [s]')
     plt.ylabel('variance')
     plt.xlim(0.0, 300.0)
-    plt.ylim(0, 10)
+    #plt.ylim(0, 10)
     plt.plot(valX, valList)
     #fill_region(frameList)
     fileName = filePath.split('/')[-1].split('.')[0] + '.png'
+    plt.savefig('../image/20170429_2/' + fileName)
+    print('\n'+fileName + ' graph success !\n')
+
+def max_plot(maxList, filePath):
+    maxX = []
+    for i in range(len(maxList)):
+        maxX.append(i)
+    plt.title('max of optical flow')
+    plt.xlabel('time [s]')
+    plt.ylabel('max')
+    plt.xlim(0.0, 300.0)
+    plt.plot(maxX, maxList)
+    fileName = filePath.split('/')[-1].split('.')[0] + '_max.png'
     plt.savefig('../image/20170429_2/' + fileName)
     print('\n'+fileName + ' graph success !\n')

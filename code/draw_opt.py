@@ -125,11 +125,9 @@ def calc_flow(filePath, output=False):
         flowImg = cv2.add(img, flowMask)
         return flowImg
 
-    def calc_norm(maskFlow, step=8):
-        x, y = np.mgrid[step/2:WIDTH:step, step/2:HEIGHT:step].reshape(2,-1).astype(int)
-        fx, fy = maskFlow[y, x].T
-        normFx = fx**2
-        normFy = fy**2
+    def calc_norm(flow):
+        normFx = flow[:,0]**2
+        normFy = flow[:, 1]**2
         flowNorm = (normFx + normFy)**0.5
         flowNorm = flowNorm[flowNorm > 0]
         return flowNorm
@@ -138,6 +136,7 @@ def calc_flow(filePath, output=False):
     # preprocessing
     #-------------------------------------------------------
     cap, fourcc, FPS, HEIGHT, WIDTH, totalFrame = set_capture(filePath)
+    print("fps = {}".format(FPS))
     pointList = init_gage(totalFrame)
     if output:
         out = cv2.VideoWriter('../movie/out_' + filePath.split('/')[-1],
@@ -147,8 +146,12 @@ def calc_flow(filePath, output=False):
     cap.set(cv2.CAP_PROP_POS_MSEC, 3 * 1000)    # initial frame
     ret, prev = cap.read()
     prevGray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
+    maxList = []
     meanList = []
     varList = []
+    tmpMean = 0
+    tmpVar = 0
+    tmpMax = 0
     feature_params, lk_params = set_sparse_parm()
     mask = load_mask('../image/image_data/mask.png')
     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
@@ -175,10 +178,27 @@ def calc_flow(filePath, output=False):
             """
             prevFeatureFiltered, nextFeatureFiltered = get_feature(prevGray, gray, feature_params, lk_params, mask)
             sparseFlow = calc_sparse_flow(prevFeatureFiltered, nextFeatureFiltered)
+            flowNorm = calc_norm(sparseFlow)
+            try:
+                tmpMax += max(flowNorm)
+            except ValueError:
+                pass
             if output:
                 #flowImg = draw_dense_flow(img, maskFlow, 8)
-                if frameNum % 15 == 0:
+                try:
+                    mean = np.mean(flowNorm)
+                except RuntimeWarning:
+                    print(frameNum)
+                tmpMean += mean
+                var = np.var(flowNorm)
+                tmpVar += var
+                if frameNum % int(FPS) == 0:
                     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
+                    meanList.append(tmpMean/int(FPS))
+                    varList.append(tmpVar/int(FPS))
+                    maxList.append(tmpMax)
+                    tmpMax = 0
+                    tmpMean, tmpVar = 0, 0
                 else:
                     pass
                 flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered)
@@ -195,12 +215,16 @@ def calc_flow(filePath, output=False):
     cap.release()
     if output:  out.release()
     cv2.destroyAllWindows()
+    print("meanList length: {}".format(len(meanList)))
+    print("varList length: {}".format(len(varList)))
 
-    return meanList, varList
+    return meanList, varList, maxList
 
 def main(filePath):
-    meanList, varList = calc_flow(filePath, True)
-    #plot_graph.mean_val_plot(meanList, varList, filePath, FPS)
+    meanList, varList, maxList = calc_flow(filePath, True)
+    #plot_graph.mean_val_plot(meanList, varList, filePath)
+    plot_graph.max_plot(maxList, filePath)
+
 
 
 def make_parse():
