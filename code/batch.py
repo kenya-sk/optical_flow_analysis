@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 #coding: utf-8
 
 import sys
@@ -28,20 +27,19 @@ def batch_processing():
     #-------------------------------------------------
     #processing all data
     #------------------------------------------------
-    direc = '/Volumes/HDD-IO/Tuna_conv/'+date
-    fileList = os.listdir(direc)
+    #direc = '/Volumes/HDD-IO/Tuna_conv/'+date
+    direc = "../movie/2017-04-29-17-18"
+    file_lst = os.listdir(direc)
     pattern = r'^(?!._).*(.mp4)$'
     repattern = re.compile(pattern)
     norDensity_arr = np.zeros((720, 1280))
-    count = 0
-    for file_name in fileList:
+    for file_name in file_lst:
         if re.search(repattern,file_name):
             inputFile = direc + '/' + file_name
-            #draw_opt.main(inputFile,flushList[count])
-            #count += 1
-            norDensity_arr = plot_kernelDensity.get_binaryData(inputFile)
-            np.save("../data/dense/dens_{}.npy".format(file_name), norDensity_arr)
-            print("success dens_{}.npy\n".format(file_name))
+            draw_opt.main(inputFile)
+            #norDensity_arr = plot_kernelDensity.get_binaryData(inputFile)
+            #np.save("../data/dense/dens_{}.npy".format(file_name), norDensity_arr)
+            #print("success dens_{}.npy\n".format(file_name))
 
 if __name__ == '__main__':
      batch_processing()

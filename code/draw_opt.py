@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # coding: utf-8
 
 import numpy as np
@@ -22,7 +21,8 @@ class FeatureError(Exception):
 def set_capture(filePath):
     cap = cv2.VideoCapture(filePath)
     fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
-    fps = int(cap.get(cv2.CAP_PROP_FPS)/2)
+    #fps = cap.get(cv2.CAP_PROP_FPS)/2
+    fps = 15.26
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     totalFrame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -43,14 +43,14 @@ def draw_dense_flow(img, maskFlow, step=8):
         cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 1)
     return img
 
-def show_gage(pointList, num):
+def show_gage(point_lst, num):
     '''
     display loading gage
-    pointList: frame number list to change gage
+    point_lst: frame number list to change gage
     num: amount of total frame
     '''
-    if num in pointList:
-        numIdx = pointList.index(num) + 1
+    if num in point_lst:
+        numIdx = point_lst.index(num) + 1
         sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format('*' * numIdx, numIdx * 10))
 
 
@@ -61,11 +61,11 @@ def calc_flow(filePath, output=False):
 
     def init_gage(totalFrame):
         point = int(totalFrame / 20)
-        pointList = []
+        point_lst = []
         for i in range(point, totalFrame, point):
-            pointList.append(i)
+            point_lst.append(i)
         sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format(' ', 0))
-        return pointList
+        return point_lst
 
     def load_mask(filepath):
         mask = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
@@ -79,7 +79,7 @@ def calc_flow(filePath, output=False):
 
     def set_sparse_parm():
         #corner detection parameter of Shi-Tomasi
-        feature_params = dict(maxCorners = 200,
+        feature_params = dict(maxCorners = 100,
                                 qualityLevel = 0.001,
                                 minDistance = 10,
                                 blockSize = 5)
@@ -137,7 +137,8 @@ def calc_flow(filePath, output=False):
     #-------------------------------------------------------
     cap, fourcc, FPS, HEIGHT, WIDTH, totalFrame = set_capture(filePath)
     print("fps = {}".format(FPS))
-    pointList = init_gage(totalFrame)
+    print("start calculation of optical flow")
+    point_lst = init_gage(totalFrame)
     if output:
         out = cv2.VideoWriter('../movie/out_' + filePath.split('/')[-1],
         fourcc, FPS, (WIDTH, HEIGHT))
@@ -146,14 +147,15 @@ def calc_flow(filePath, output=False):
     cap.set(cv2.CAP_PROP_POS_MSEC, 3 * 1000)    # initial frame
     ret, prev = cap.read()
     prevGray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
-    maxList = []
-    meanList = []
-    varList = []
-    tmpMean = 0
-    tmpVar = 0
-    tmpMax = 0
+    max_lst = []
+    mean_lst = []
+    var_lst = []
+    windowSize = 3  #int(FPS) #shift caluculate region
+    tmpMean_lst = [0 for i in range(windowSize - 1)]
+    tmpVar_lst = [0 for i in range(windowSize - 1)]
+    tmpMax_lst = [0 for i in range(windowSize - 1)]
     feature_params, lk_params = set_sparse_parm()
-    mask = load_mask('../image/image_data/mask.png')
+    mask = load_mask('../image/image_data/mask_test.png')
     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
     #-------------------------------------------------------
     # caluculate optical flow per frame
@@ -179,34 +181,38 @@ def calc_flow(filePath, output=False):
             prevFeatureFiltered, nextFeatureFiltered = get_feature(prevGray, gray, feature_params, lk_params, mask)
             sparseFlow = calc_sparse_flow(prevFeatureFiltered, nextFeatureFiltered)
             flowNorm = calc_norm(sparseFlow)
+
+            #make list per frame
             try:
-                tmpMax += max(flowNorm)
+                tmpMax_lst.append(max(flowNorm))
             except ValueError:
-                pass
+                tmpMax_lst.append(0)
+            mean = np.mean(flowNorm)
+            tmpMean_lst.append(mean)
+            var = np.var(flowNorm)
+            tmpVar_lst.append(var)
+            assert len(tmpMax_lst) == windowSize, "tmpMax_lst length is not windowSize"
+            assert len(tmpMean_lst) == windowSize, "tmpMean_lst length is not windowSize"
+            assert len(tmpVar_lst) == windowSize, "tmpVar_lst length is not windowSize"
+            #add the element of the current frame
+            mean_lst.append(sum(tmpMean_lst))
+            var_lst.append(sum(tmpVar_lst))
+            max_lst.append(sum(tmpMax_lst))
+            #delete the first element
+            tmpMean_lst.pop(0)
+            tmpVar_lst.pop(0)
+            tmpMax_lst.pop(0)
+
             if output:
-                #flowImg = draw_dense_flow(img, maskFlow, 8)
-                try:
-                    mean = np.mean(flowNorm)
-                except RuntimeWarning:
-                    print(frameNum)
-                tmpMean += mean
-                var = np.var(flowNorm)
-                tmpVar += var
-                if frameNum % int(FPS) == 0:
-                    flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
-                    meanList.append(tmpMean/int(FPS))
-                    varList.append(tmpVar/int(FPS))
-                    maxList.append(tmpMax)
-                    tmpMax = 0
-                    tmpMean, tmpVar = 0, 0
-                else:
-                    pass
+                #make cumulative image
                 flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered)
                 out.write(flowImg)
                 #cv2.imshow("flow img", flowImg)
+                if frameNum % int(FPS) == 0:
+                    flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
             else:
                 pass
-            show_gage(pointList,frameNum)
+            show_gage(point_lst,frameNum)
             prevGray = gray
             if cv2.waitKey(1)&0xff == 27:
                 break
@@ -215,15 +221,17 @@ def calc_flow(filePath, output=False):
     cap.release()
     if output:  out.release()
     cv2.destroyAllWindows()
-    print("meanList length: {}".format(len(meanList)))
-    print("varList length: {}".format(len(varList)))
+    print("\nend calculation optical flow")
+    print("\nmeanList length: {}".format(len(mean_lst)))
+    print("\nvarList length: {}".format(len(var_lst)))
+    print("\nmaxList length: {}".format(len(max_lst)))
 
-    return meanList, varList, maxList
+    return mean_lst, var_lst, max_lst
 
 def main(filePath):
-    meanList, varList, maxList = calc_flow(filePath, True)
-    #plot_graph.mean_val_plot(meanList, varList, filePath)
-    plot_graph.max_plot(maxList, filePath)
+    mean_lst, var_lst, max_lst = calc_flow(filePath, False)
+    plot_graph.mean_var_plot(mean_lst, var_lst, filePath)
+    plot_graph.max_plot(max_lst, filePath)
 
 
 

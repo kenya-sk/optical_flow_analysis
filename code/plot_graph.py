@@ -1,15 +1,14 @@
-#! /usr/bin/env python
 # coding: utf-8
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def mean_val_plot(meanList, valList, filePath):
+def mean_var_plot(mean_lst, var_lst, filePath):
     '''
     plot mean and variance
-    meanList: mean value list
-    valList: variance value list
+    mean_lst: mean value list
+    val_lst: variance value list
     frameList: two dimention list
     '''
     def fill_region(frameList):
@@ -22,41 +21,55 @@ def mean_val_plot(meanList, valList, filePath):
     plt.figure(figsize=(12, 9))
     # mean list
     meanX = []
-    for i in range(len(meanList)):
+    for i in range(len(mean_lst)):
         meanX.append(i)
     plt.subplot(2, 1, 1)
     plt.title('Mean of optical flow')
     plt.xlabel('time [s]')
     plt.ylabel('mean')
-    plt.xlim(0.0, 300.0)
-    #plt.ylim(0.0, 2.0)
-    plt.plot(meanX, meanList)
+    meanXLimMin = 0.0
+    meanXLimMax = 300.0
+    meanYLimMin = min(mean_lst[16:]) - 5
+    meanYLimMax = max(mean_lst[16:]) + 5
+    plt.axis([0.0, 300.0, 0.0, 20])
+    plt.grid(True)
+    plt.plot(meanX, mean_lst)
     #fill_region(frameList)
     # variance list
-    valX = []
-    for i in range(len(valList)):
-        valX.append(i)
+    varX = []
+    for i in range(len(var_lst)):
+        varX.append(i)
     plt.subplot(2, 1, 2)
     plt.title('Variance of optical flow')
     plt.xlabel('time [s]')
     plt.ylabel('variance')
-    plt.xlim(0.0, 300.0)
-    #plt.ylim(0, 10)
-    plt.plot(valX, valList)
+    varXLimMin = 0.0
+    varXLimMax = 300.0
+    varYLimMin = min(var_lst[16:]) - 5
+    varYLimMax = max(var_lst[16:]) + 5
+    plt.axis([0.0, 300.0, 0.0, 40.0])
+    plt.grid(True)
+    plt.plot(varX, var_lst)
     #fill_region(frameList)
-    fileName = filePath.split('/')[-1].split('.')[0] + '.png'
-    plt.savefig('../image/20170429_2/' + fileName)
+    fileName = filePath.split('/')[-1].split('.')[0] + '_mean_var.png'
+    plt.savefig('../image/20170429_17_18/' + fileName)
     print('\n'+fileName + ' graph success !\n')
 
-def max_plot(maxList, filePath):
+def max_plot(max_lst, filePath):
+    plt.figure(figsize=(12,9))
     maxX = []
-    for i in range(len(maxList)):
+    for i in range(len(max_lst)):
         maxX.append(i)
     plt.title('max of optical flow')
     plt.xlabel('time [s]')
     plt.ylabel('max')
-    plt.xlim(0.0, 300.0)
-    plt.plot(maxX, maxList)
+    maxXLimMin = 0.0
+    maxXLimMax = 300.0
+    maxYLimMin = min(max_lst[16:]) - 5
+    maxYLimMax = max(max_lst[16:]) + 5
+    plt.axis([0.0, 300.0, 0.0, 80.0])
+    plt.grid(True)
+    plt.plot(maxX, max_lst)
     fileName = filePath.split('/')[-1].split('.')[0] + '_max.png'
-    plt.savefig('../image/20170429_2/' + fileName)
+    plt.savefig('../image/20170429_17_18/' + fileName)
     print('\n'+fileName + ' graph success !\n')
