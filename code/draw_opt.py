@@ -54,7 +54,7 @@ def show_gage(point_lst, num):
         sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format('*' * numIdx, numIdx * 10))
 
 
-def calc_flow(filePath, output=False):
+def calc_flow(window, filePath, output=False):
     global HEIGHT
     global WIDTH
     global FPS
@@ -73,9 +73,10 @@ def calc_flow(filePath, output=False):
         mask[mask==255] = 1
         return mask
 
-    def calc_dense_flow(prevGray, gray):
+    def calc_dense_flow(prevGray, gray, mask=None):
         flow = cv2.calcOpticalFlowFarneback(prevGray,gray,None,0.5,3,15,3,5,1.2,0)
-        return flow
+        maskFlow = mask * flow
+        return maskFlow
 
     def set_sparse_parm():
         #corner detection parameter of Shi-Tomasi
@@ -150,7 +151,7 @@ def calc_flow(filePath, output=False):
     max_lst = []
     mean_lst = []
     var_lst = []
-    windowSize = 3  #int(FPS) #shift caluculate region
+    windowSize = window  #int(FPS) #shift caluculate region
     tmpMean_lst = [0 for i in range(windowSize - 1)]
     tmpVar_lst = [0 for i in range(windowSize - 1)]
     tmpMax_lst = [0 for i in range(windowSize - 1)]
@@ -166,22 +167,9 @@ def calc_flow(filePath, output=False):
         frameNum += 1
         if ret == True:
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            """
-            flow = calc_dense_flow(prevGray, gray)
-            maskFlow = flow*mask
-            flowNorm = calc_norm(maskFlow, 8)
-            try:
-                mean = np.mean(flowNorm)
-            except RuntimeWarning:
-                print(frameNum)
-            meanList.append(mean)
-            var = np.var(flowNorm)
-            varList.append(var)
-            """
             prevFeatureFiltered, nextFeatureFiltered = get_feature(prevGray, gray, feature_params, lk_params, mask)
             sparseFlow = calc_sparse_flow(prevFeatureFiltered, nextFeatureFiltered)
             flowNorm = calc_norm(sparseFlow)
-
             #make list per frame
             try:
                 tmpMax_lst.append(max(flowNorm))
@@ -195,13 +183,16 @@ def calc_flow(filePath, output=False):
             assert len(tmpMean_lst) == windowSize, "tmpMean_lst length is not windowSize"
             assert len(tmpVar_lst) == windowSize, "tmpVar_lst length is not windowSize"
             #add the element of the current frame
+            max_lst.append(sum(tmpMax_lst))
             mean_lst.append(sum(tmpMean_lst))
             var_lst.append(sum(tmpVar_lst))
-            max_lst.append(sum(tmpMax_lst))
             #delete the first element
+            tmpMax_lst.pop(0)
             tmpMean_lst.pop(0)
             tmpVar_lst.pop(0)
-            tmpMax_lst.pop(0)
+            assert len(tmpMax_lst) == windowSize - 1, "tmpMax_lst element is not deleted"
+            assert len(tmpMean_lst) == windowSize - 1, "tmpMean_lst element is not deleted"
+            assert len(tmpVar_lst) == windowSize - 1, "tmpVar_lst element is not deleted"
 
             if output:
                 #make cumulative image
@@ -221,6 +212,10 @@ def calc_flow(filePath, output=False):
     cap.release()
     if output:  out.release()
     cv2.destroyAllWindows()
+    #deleate last frame
+    mean_lst = mean_lst[:-100]
+    var_lst = var_lst[:-100]
+    max_lst = max_lst[:-100]
     print("\nend calculation optical flow")
     print("\nmeanList length: {}".format(len(mean_lst)))
     print("\nvarList length: {}".format(len(var_lst)))
@@ -228,10 +223,10 @@ def calc_flow(filePath, output=False):
 
     return mean_lst, var_lst, max_lst
 
-def main(filePath):
-    mean_lst, var_lst, max_lst = calc_flow(filePath, False)
-    plot_graph.mean_var_plot(mean_lst, var_lst, filePath)
-    plot_graph.max_plot(max_lst, filePath)
+def main(window, filePath):
+    mean_lst, var_lst, max_lst = calc_flow(window, filePath, False)
+    plot_graph.mean_var_plot(mean_lst, var_lst, window, filePath)
+    plot_graph.max_plot(max_lst, window, filePath)
 
 
 

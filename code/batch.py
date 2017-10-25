@@ -33,13 +33,14 @@ def batch_processing():
     pattern = r'^(?!._).*(.mp4)$'
     repattern = re.compile(pattern)
     norDensity_arr = np.zeros((720, 1280))
-    for file_name in file_lst:
-        if re.search(repattern,file_name):
-            inputFile = direc + '/' + file_name
-            draw_opt.main(inputFile)
-            #norDensity_arr = plot_kernelDensity.get_binaryData(inputFile)
-            #np.save("../data/dense/dens_{}.npy".format(file_name), norDensity_arr)
-            #print("success dens_{}.npy\n".format(file_name))
+    for window in [15]:
+        for file_name in file_lst:
+            if re.search(repattern,file_name):
+                inputFile = direc + '/' + file_name
+                draw_opt.main(window, inputFile)
+                #norDensity_arr = plot_kernelDensity.get_binaryData(inputFile)
+                #np.save("../data/dense/dens_{}.npy".format(file_name), norDensity_arr)
+                #print("success dens_{}.npy\n".format(file_name))
 
 if __name__ == '__main__':
      batch_processing()
