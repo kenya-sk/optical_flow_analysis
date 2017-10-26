@@ -54,7 +54,7 @@ def show_gage(point_lst, num):
         sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format('*' * numIdx, numIdx * 10))
 
 
-def calc_flow(window, filePath, output=False):
+def calc_flow(filePath, output=False):
     global HEIGHT
     global WIDTH
     global FPS
@@ -80,7 +80,7 @@ def calc_flow(window, filePath, output=False):
 
     def set_sparse_parm():
         #corner detection parameter of Shi-Tomasi
-        feature_params = dict(maxCorners = 100,
+        feature_params = dict(maxCorners = 200,
                                 qualityLevel = 0.001,
                                 minDistance = 10,
                                 blockSize = 5)
@@ -100,6 +100,7 @@ def calc_flow(window, filePath, output=False):
         nextFeature, status, err = cv2.calcOpticalFlowPyrLK(prevGray, gray, prevFeature, None, **lk_params)
         prevFeatureFiltered = prevFeature[status == 1]
         nextFeatureFiltered = nextFeature[status == 1]
+        feature_count(frameNum, prevFeatureFiltered, nextFeatureFiltered)
         return prevFeatureFiltered, nextFeatureFiltered
 
 
@@ -111,18 +112,28 @@ def calc_flow(window, filePath, output=False):
             for i, (prevPoint, nextPoint) in enumerate(zip(prevFeatureFiltered, nextFeatureFiltered)):
                 prevX, prevY = prevPoint.ravel()
                 nextX, nextY = nextPoint.ravel()
-                sparseFlow[i][0] = nextX - prevX
-                sparseFlow[i][1] = nextY - prevY
+                flowX = nextX - prevX
+                flowY = nextY - prevY
+                if flowX > 1 or flowY > 1:
+                    sparseFlow[i][0] = nextX - prevX
+                    sparseFlow[i][1] = nextY - prevY
+                else:
+                    pass
         except FeatureError:
             pass
         return sparseFlow
 
     def make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered):
-        for i, (nextPoint, prevPoint) in enumerate(zip(nextFeatureFiltered, prevFeatureFiltered)):
+        for nextPoint, prevPoint in zip(nextFeatureFiltered, prevFeatureFiltered):
             prevX, prevY = prevPoint.ravel()
             nextX, nextY = nextPoint.ravel()
-            flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 0, 255), 2)
-            img = cv2.circle(img, (nextX, nextY), 3, (0, 0, 255), -1)
+            flowX = nextX - prevX
+            flowY = nextY - prevY
+            if flowX > 1 or flowY > 1:
+                flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 0, 255), 2)
+                img = cv2.circle(img, (nextX, nextY), 3, (0, 0, 255), -1)
+            else:
+                pass
         flowImg = cv2.add(img, flowMask)
         return flowImg
 
@@ -130,8 +141,13 @@ def calc_flow(window, filePath, output=False):
         normFx = flow[:,0]**2
         normFy = flow[:, 1]**2
         flowNorm = (normFx + normFy)**0.5
-        flowNorm = flowNorm[flowNorm > 0]
+        #flowNorm = flowNorm[flowNorm > 5]
         return flowNorm
+
+    def feature_count(frameNum, prevFeatureFiltered, nextFeatureFiltered):
+        with open("./feature.txt", 'a') as f:
+            text = "NUM:{0}  prev:{1}  next:{2}\n".format(frameNum, prevFeatureFiltered.shape[0], nextFeatureFiltered.shape[0])
+            f.write(text)
 
     #-------------------------------------------------------
     # preprocessing
@@ -151,7 +167,7 @@ def calc_flow(window, filePath, output=False):
     max_lst = []
     mean_lst = []
     var_lst = []
-    windowSize = window  #int(FPS) #shift caluculate region
+    windowSize = 15  #int(FPS) #shift caluculate region
     tmpMean_lst = [0 for i in range(windowSize - 1)]
     tmpVar_lst = [0 for i in range(windowSize - 1)]
     tmpMax_lst = [0 for i in range(windowSize - 1)]
@@ -168,6 +184,7 @@ def calc_flow(window, filePath, output=False):
         if ret == True:
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             prevFeatureFiltered, nextFeatureFiltered = get_feature(prevGray, gray, feature_params, lk_params, mask)
+            feature_count(frameNum, prevFeatureFiltered, nextFeatureFiltered)
             sparseFlow = calc_sparse_flow(prevFeatureFiltered, nextFeatureFiltered)
             flowNorm = calc_norm(sparseFlow)
             #make list per frame
@@ -175,9 +192,13 @@ def calc_flow(window, filePath, output=False):
                 tmpMax_lst.append(max(flowNorm))
             except ValueError:
                 tmpMax_lst.append(0)
-            mean = np.mean(flowNorm)
+            if  flowNorm.shape[0] != 0:
+                mean = np.mean(flowNorm)
+                var = np.var(flowNorm)
+            else:
+                mean = 0
+                var = 0
             tmpMean_lst.append(mean)
-            var = np.var(flowNorm)
             tmpVar_lst.append(var)
             assert len(tmpMax_lst) == windowSize, "tmpMax_lst length is not windowSize"
             assert len(tmpMean_lst) == windowSize, "tmpMean_lst length is not windowSize"
@@ -197,6 +218,8 @@ def calc_flow(window, filePath, output=False):
             if output:
                 #make cumulative image
                 flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered)
+                text = "[frameNum: {}]".format(frameNum)
+                cv2.putText(flowImg, text, (950, 670), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0))
                 out.write(flowImg)
                 #cv2.imshow("flow img", flowImg)
                 if frameNum % int(FPS) == 0:
@@ -223,10 +246,10 @@ def calc_flow(window, filePath, output=False):
 
     return mean_lst, var_lst, max_lst
 
-def main(window, filePath):
-    mean_lst, var_lst, max_lst = calc_flow(window, filePath, False)
-    plot_graph.mean_var_plot(mean_lst, var_lst, window, filePath)
-    plot_graph.max_plot(max_lst, window, filePath)
+def main(filePath):
+    mean_lst, var_lst, max_lst = calc_flow(filePath, False)
+    plot_graph.mean_var_plot(mean_lst, var_lst, filePath)
+    plot_graph.max_plot(max_lst, filePath)
 
 
 

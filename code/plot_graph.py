@@ -27,7 +27,7 @@ def set_graph(value_lst):
     plt.grid(True)
     plt.plot(valueX, value_lst)
 
-def mean_var_plot(mean_lst, var_lst, window, filePath):
+def mean_var_plot(mean_lst, var_lst, filePath):
     '''
     plot mean and variance
     mean_lst: mean value list
@@ -50,16 +50,18 @@ def mean_var_plot(mean_lst, var_lst, window, filePath):
     plt.ylabel('variance')
     set_graph(var_lst)
     #fill_region(frameList)
-    fileName = filePath.split('/')[-1].split('.')[0] + '_mean_var_{}.png'.format(window)
-    plt.savefig('../image/test/' + fileName)
+    fileName = filePath.split('/')[-1].split('.')[0] + '_mean_var.png'
+    #plt.savefig('../image/test/' + fileName)
+    plt.savefig("./" + fileName)
     print('\n'+fileName + ' graph success !\n')
 
-def max_plot(max_lst, window, filePath):
+def max_plot(max_lst, filePath):
     plt.figure(figsize=(12,9))
     plt.title('max of optical flow')
     plt.xlabel('time [s]')
     plt.ylabel('max')
     set_graph(max_lst)
-    fileName = filePath.split('/')[-1].split('.')[0] + '_max_{}.png'.format(window)
-    plt.savefig('../image/test/' + fileName)
+    fileName = filePath.split('/')[-1].split('.')[0] + '_max.png'
+    #plt.savefig('../image/test/' + fileName)
+    plt.savefig("./" + fileName)
     print('\n'+fileName + ' graph success !\n')
