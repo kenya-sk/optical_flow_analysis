@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # coding: utf-8
 
 import numpy as np
@@ -17,12 +18,12 @@ def set_graph(value_lst):
     valueXLimMin = valueX[0]
     valueXLimMax = valueX[-1]
     valueYLimMin = 0
-    valueYLimMax = max(value_lst[:len(value_lst)-100]) + 5
+    valueYLimMax = max(value_lst) + 10
     plt.xlim(valueXLimMin, valueXLimMax)
     plt.ylim(valueYLimMin, valueYLimMax)
-    x_lst = [x for x in range(0, len(valueX), 152)]
-    xTicks_lst = [x*10 for x in range(0, len(x_lst), 1)]
-    plt.xticks(x_lst ,xTicks_lst)
+    #x_lst = [x for x in range(0, len(valueX), 152)]
+    #xTicks_lst = [x*10 for x in range(0, len(x_lst), 1)]
+    #plt.xticks(x_lst ,xTicks_lst)
     plt.tick_params(labelsize=8)
     plt.grid(True)
     plt.plot(valueX, value_lst)
@@ -35,33 +36,36 @@ def mean_var_plot(mean_lst, var_lst, filePath):
     frameList: two dimention list
     '''
 
-    plt.figure(figsize=(12, 9))
     # mean list
-    plt.subplot(2, 1, 1)
+    plt.figure()
+    plt.figure(figsize=(20, 6))
     plt.title('Mean of optical flow')
-    plt.xlabel('time [s]')
+    plt.xlabel('frame number')
     plt.ylabel('mean')
     set_graph(mean_lst)
+    fileName = filePath.split('/')[-1].split('.')[0] + '_mean_{}.png'.format(window)
+    plt.savefig('../image/total_17_18/' + fileName)
     #fill_region(frameList)
+
     # variance list
-    plt.subplot(2, 1, 2)
+    plt.figure()
+    plt.figure(figsize=(20, 6))
     plt.title('Variance of optical flow')
-    plt.xlabel('time [s]')
+    plt.xlabel('frame number')
     plt.ylabel('variance')
     set_graph(var_lst)
     #fill_region(frameList)
-    fileName = filePath.split('/')[-1].split('.')[0] + '_mean_var.png'
-    #plt.savefig('../image/test/' + fileName)
-    plt.savefig("./" + fileName)
+    fileName = filePath.split('/')[-1].split('.')[0] + '_var_{}.png'.format(window)
+    plt.savefig('../image/total_17_18/' + fileName)
     print('\n'+fileName + ' graph success !\n')
 
-def max_plot(max_lst, filePath):
-    plt.figure(figsize=(12,9))
+def max_plot(max_lst, window, filePath):
+    plt.figure()
+    plt.figure(figsize=(20, 6))
     plt.title('max of optical flow')
-    plt.xlabel('time [s]')
+    plt.xlabel('frame number')
     plt.ylabel('max')
     set_graph(max_lst)
-    fileName = filePath.split('/')[-1].split('.')[0] + '_max.png'
-    #plt.savefig('../image/test/' + fileName)
-    plt.savefig("./" + fileName)
+    fileName = filePath.split('/')[-1].split('.')[0] + '_max_{}.png'.format(window)
+    plt.savefig('../image/total_17_18/' + fileName)
     print('\n'+fileName + ' graph success !\n')
