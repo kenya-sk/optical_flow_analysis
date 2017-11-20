@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # coding: utf-8
 
 import numpy as np
@@ -21,8 +22,7 @@ class FeatureError(Exception):
 def set_capture(filePath):
     cap = cv2.VideoCapture(filePath)
     fourcc = int(cv2.VideoWriter_fourcc(*'avc1'))
-    #fps = cap.get(cv2.CAP_PROP_FPS)/2
-    fps = 15.26
+    fps = cap.get(cv2.CAP_PROP_FPS)
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     totalFrame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -54,13 +54,13 @@ def show_gage(point_lst, num):
         sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format('*' * numIdx, numIdx * 10))
 
 
-def calc_flow(window, filePath, output=False):
+def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=15, output=False):
     global HEIGHT
     global WIDTH
     global FPS
 
     def init_gage(totalFrame):
-        point = int(totalFrame / 20)
+        point = int(totalFrame / 10)
         point_lst = []
         for i in range(point, totalFrame, point):
             point_lst.append(i)
@@ -73,6 +73,13 @@ def calc_flow(window, filePath, output=False):
         mask[mask==255] = 1
         return mask
 
+    def make_coordinate_lst(prevFeatureFiltered, coordinateX_lst, coordinateY_lst):
+        for prevPoint in prevFeatureFiltered:
+            prevX, prevY = prevPoint.ravel()
+            coordinateX_lst.append(prevX)
+            coordinateY_lst.append(prevY)
+        return coordinateX_lst, coordinateY_lst
+
     def calc_dense_flow(prevGray, gray, mask=None):
         flow = cv2.calcOpticalFlowFarneback(prevGray,gray,None,0.5,3,15,3,5,1.2,0)
         maskFlow = mask * flow
@@ -80,7 +87,7 @@ def calc_flow(window, filePath, output=False):
 
     def set_sparse_parm():
         #corner detection parameter of Shi-Tomasi
-        feature_params = dict(maxCorners = 100,
+        feature_params = dict(maxCorners = 150,
                                 qualityLevel = 0.001,
                                 minDistance = 10,
                                 blockSize = 5)
@@ -141,23 +148,28 @@ def calc_flow(window, filePath, output=False):
     print("start calculation of optical flow")
     point_lst = init_gage(totalFrame)
     if output:
-        out = cv2.VideoWriter('../movie/out_' + filePath.split('/')[-1],
+        out = cv2.VideoWriter('../movie/out/out_' + filePath.split('/')[-1],
         fourcc, FPS, (WIDTH, HEIGHT))
     else:
         pass
-    cap.set(cv2.CAP_PROP_POS_MSEC, 3 * 1000)    # initial frame
     ret, prev = cap.read()
     prevGray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
+    coordinateX_lst = []
+    coordinateY_lst = []
     max_lst = []
     mean_lst = []
     var_lst = []
     windowSize = window  #int(FPS) #shift caluculate region
-    tmpMean_lst = [0 for i in range(windowSize - 1)]
-    tmpVar_lst = [0 for i in range(windowSize - 1)]
-    tmpMax_lst = [0 for i in range(windowSize - 1)]
+    #tmpMean_lst = [0 for i in range(windowSize - 1)]
+    #tmpVar_lst = [0 for i in range(windowSize - 1)]
+    #tmpMax_lst = [0 for i in range(windowSize - 1)]
+    #tmpMax_lst = []
+    #tmpVar_lst = []
+    #tmpMean_lst = []
     feature_params, lk_params = set_sparse_parm()
-    mask = load_mask('../image/image_data/mask_test.png')
+    mask = load_mask('../image/image_data/mask.png')
     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
+    #dens_mask = cv2.imread("../image/image_data/density.png")
     #-------------------------------------------------------
     # caluculate optical flow per frame
     #-------------------------------------------------------
@@ -168,24 +180,34 @@ def calc_flow(window, filePath, output=False):
         if ret == True:
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             prevFeatureFiltered, nextFeatureFiltered = get_feature(prevGray, gray, feature_params, lk_params, mask)
+            coordinateX_lst, coordinateY_lst = make_coordinate_lst(prevFeatureFiltered, coordinateX_lst, coordinateY_lst)
             sparseFlow = calc_sparse_flow(prevFeatureFiltered, nextFeatureFiltered)
             flowNorm = calc_norm(sparseFlow)
             #make list per frame
             try:
-                tmpMax_lst.append(max(flowNorm))
+                flowMax = max(flowNorm)
+                tmpMax_lst.append(flowMax)
             except ValueError:
                 tmpMax_lst.append(0)
-            mean = np.mean(flowNorm)
+            if flowNorm.shape[0] != 0:
+                mean = np.mean(flowNorm)
+                var = np.var(flowNorm)
+            else:
+                mean = 0
+                var = 0
             tmpMean_lst.append(mean)
-            var = np.var(flowNorm)
             tmpVar_lst.append(var)
             assert len(tmpMax_lst) == windowSize, "tmpMax_lst length is not windowSize"
             assert len(tmpMean_lst) == windowSize, "tmpMean_lst length is not windowSize"
             assert len(tmpVar_lst) == windowSize, "tmpVar_lst length is not windowSize"
             #add the element of the current frame
+            #if frameNum % int(FPS) == 0:
             max_lst.append(sum(tmpMax_lst))
             mean_lst.append(sum(tmpMean_lst))
             var_lst.append(sum(tmpVar_lst))
+                #tmpMax_lst = []
+                #tmpVar_lst = []
+                #tmpMean_lst = []
             #delete the first element
             tmpMax_lst.pop(0)
             tmpMean_lst.pop(0)
@@ -197,8 +219,10 @@ def calc_flow(window, filePath, output=False):
             if output:
                 #make cumulative image
                 flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered)
-                out.write(flowImg)
+                #test densuty map
+                #densImg = cv2.addWeighted(flowImg, 0.5, dens_mask, 0.5, 0)
                 #cv2.imshow("flow img", flowImg)
+                out.write(flowImg)
                 if frameNum % int(FPS) == 0:
                     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
             else:
@@ -212,19 +236,30 @@ def calc_flow(window, filePath, output=False):
     cap.release()
     if output:  out.release()
     cv2.destroyAllWindows()
-    #deleate last frame
-    mean_lst = mean_lst[:-100]
-    var_lst = var_lst[:-100]
-    max_lst = max_lst[:-100]
+
+    np.save("./mean.npy", np.array(mean_lst))
+    np.save("./var.npy", np.array(var_lst))
+    np.save("./max.npy", np.array(max_lst))
+
     print("\nend calculation optical flow")
     print("\nmeanList length: {}".format(len(mean_lst)))
     print("\nvarList length: {}".format(len(var_lst)))
     print("\nmaxList length: {}".format(len(max_lst)))
 
-    return mean_lst, var_lst, max_lst
+    #fileName = filePath.split('/')[-1].split('.')[0]
+    #np.save("../data/coordinate/{}_coordinateX.npy".format(fileName), np.array(coordinateX_lst))
+    #np.save("../data/coordinate/{}_coordinateY.npy".format(fileName), np.array(coordinateY_lst))
 
-def main(window, filePath):
-    mean_lst, var_lst, max_lst = calc_flow(window, filePath, False)
+    plot_graph.mean_var_plot(mean_lst, var_lst, window, filePath)
+    plot_graph.max_plot(max_lst, window, filePath)
+
+    return mean_lst, var_lst, max_lst, tmpMean_lst, tmpVar_lst, tmpMax_lst
+
+def main(filePath, window=30):
+    tmpMean_lst = [0 for i in range(window - 1)]
+    tmpVar_lst = [0 for i in range(window - 1)]
+    tmpMax_lst = [0 for i in range(window - 1)]
+    mean_lst, var_lst, max_lst, _, _, _ = calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window, False)
     plot_graph.mean_var_plot(mean_lst, var_lst, window, filePath)
     plot_graph.max_plot(max_lst, window, filePath)
 
