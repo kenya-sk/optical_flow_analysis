@@ -138,7 +138,7 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
             flowY = nextY - prevY
             flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 0, 255), 2)
             img = cv2.circle(img, (nextX, nextY), 3, (0, 0, 255), -1)
-            
+
         flowImg = cv2.add(img, flowMask)
         return flowImg
 
@@ -162,7 +162,7 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
     print("start calculation of optical flow")
     point_lst = init_gage(totalFrame)
     if output:
-        out = cv2.VideoWriter('../movie/out/out_' + filePath.split('/')[-1],
+        out = cv2.VideoWriter('../movie/out/out_total' + filePath.split('/')[-1],
         fourcc, FPS, (WIDTH, HEIGHT))
     else:
         pass
@@ -245,10 +245,12 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
                 flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered)
                 #test densuty map
                 #densImg = cv2.addWeighted(flowImg, 0.5, dens_mask, 0.5, 0)
-                #cv2.imshow("flow img", flowImg)
+                cv2.imshow("flow img", flowImg)
                 out.write(flowImg)
+                """
                 if frameNum % int(FPS) == 0:
                     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
+                """
             else:
                 pass
             show_gage(point_lst,frameNum)
@@ -283,9 +285,9 @@ def main(filePath, window=30):
     tmpMean_lst = [0 for i in range(window - 1)]
     tmpVar_lst = [0 for i in range(window - 1)]
     tmpMax_lst = [0 for i in range(window - 1)]
-    mean_lst, var_lst, max_lst, _, _, _ = calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window, False)
-    plot_graph.mean_var_plot(mean_lst, var_lst, window, filePath)
-    plot_graph.max_plot(max_lst, window, filePath)
+    mean_lst, var_lst, max_lst, _, _, _ = calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window, True)
+    #plot_graph.mean_var_plot(mean_lst, var_lst, window, filePath)
+    #plot_graph.max_plot(max_lst, window, filePath)
 
 
 
