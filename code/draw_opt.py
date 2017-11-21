@@ -130,15 +130,19 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
             pass
         return sparseFlow
 
-    def make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered):
-        for nextPoint, prevPoint in zip(nextFeatureFiltered, prevFeatureFiltered):
+    def make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered, indexOfFlowMax):
+        for (i, (nextPoint, prevPoint)) in enumerate(zip(nextFeatureFiltered, prevFeatureFiltered)):
             prevX, prevY = prevPoint.ravel()
             nextX, nextY = nextPoint.ravel()
             flowX = nextX - prevX
             flowY = nextY - prevY
-            flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 0, 255), 2)
-            img = cv2.circle(img, (nextX, nextY), 3, (0, 0, 255), -1)
-            
+            if indexOfFlowMax == i:
+                flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 255, 0), 2)
+                img = cv2.circle(img, (nextX, nextY), 4, (0, 255, 0), -1)
+            else:
+                flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 0, 255), 2)
+                img = cv2.circle(img, (nextX, nextY), 3, (0, 0, 255), -1)
+
         flowImg = cv2.add(img, flowMask)
         return flowImg
 
@@ -201,8 +205,10 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
             #make list per frame
             try:
                 flowMax = max(flowNorm)
+                indexOfFlowMax = np.argmax(flowNorm)
             except ValueError:
                 flowMax = 0
+                indexOfFlowMax = None
             if flowNorm.shape[0] != 0:
                 flowMean = np.mean(flowNorm)
                 flowVar = np.var(flowNorm)
@@ -242,10 +248,10 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
 
             if output:
                 #make cumulative image
-                flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered)
+                flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered, indexOfFlowMax)
                 #test densuty map
                 #densImg = cv2.addWeighted(flowImg, 0.5, dens_mask, 0.5, 0)
-                #cv2.imshow("flow img", flowImg)
+                cv2.imshow("flow img", flowImg)
                 out.write(flowImg)
                 if frameNum % int(FPS) == 0:
                     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
@@ -283,7 +289,7 @@ def main(filePath, window=30):
     tmpMean_lst = [0 for i in range(window - 1)]
     tmpVar_lst = [0 for i in range(window - 1)]
     tmpMax_lst = [0 for i in range(window - 1)]
-    mean_lst, var_lst, max_lst, _, _, _ = calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window, False)
+    mean_lst, var_lst, max_lst, _, _, _ = calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window, True)
     plot_graph.mean_var_plot(mean_lst, var_lst, window, filePath)
     plot_graph.max_plot(max_lst, window, filePath)
 
