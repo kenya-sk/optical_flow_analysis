@@ -251,6 +251,9 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
                 flowImg = make_spase_flow_image(img, flowMask, prevFeatureFiltered, nextFeatureFiltered, indexOfFlowMax)
                 #test densuty map
                 #densImg = cv2.addWeighted(flowImg, 0.5, dens_mask, 0.5, 0)
+                #write frame number
+                text = "[ Frame Number: {0:04d} ]".format(frameNum)
+                cv2.putText(flowImg, text, (850, 680), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                 cv2.imshow("flow img", flowImg)
                 out.write(flowImg)
                 if frameNum % int(FPS) == 0:
