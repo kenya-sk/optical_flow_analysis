@@ -54,7 +54,7 @@ def show_gage(point_lst, num):
         sys.stderr.write('\rWriting Rate:[{0}] {1}%'.format('*' * numIdx, numIdx * 10))
 
 
-def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=15, output=False):
+def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=False):
     global HEIGHT
     global WIDTH
     global FPS
