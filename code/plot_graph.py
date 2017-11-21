@@ -28,7 +28,7 @@ def set_graph(value_lst):
     plt.grid(True)
     plt.plot(valueX, value_lst)
 
-def mean_var_plot(mean_lst, var_lst, filePath):
+def mean_var_plot(mean_lst, var_lst, window,  filePath):
     '''
     plot mean and variance
     mean_lst: mean value list

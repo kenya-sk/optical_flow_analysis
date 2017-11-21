@@ -136,11 +136,9 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
             nextX, nextY = nextPoint.ravel()
             flowX = nextX - prevX
             flowY = nextY - prevY
-            if flowX > 1 or flowY > 1:
-                flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 0, 255), 2)
-                img = cv2.circle(img, (nextX, nextY), 3, (0, 0, 255), -1)
-            else:
-                pass
+            flowMask = cv2.line(flowMask, (nextX, nextY), (prevX, prevY), (0, 0, 255), 2)
+            img = cv2.circle(img, (nextX, nextY), 3, (0, 0, 255), -1)
+            
         flowImg = cv2.add(img, flowMask)
         return flowImg
 
@@ -199,20 +197,30 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
             coordinateX_lst, coordinateY_lst = make_coordinate_lst(prevFeatureFiltered, coordinateX_lst, coordinateY_lst)
             sparseFlow = calc_sparse_flow(prevFeatureFiltered, nextFeatureFiltered)
             flowNorm = calc_norm(sparseFlow)
+
             #make list per frame
             try:
                 flowMax = max(flowNorm)
-                tmpMax_lst.append(flowMax)
             except ValueError:
-                tmpMax_lst.append(0)
+                flowMax = 0
             if flowNorm.shape[0] != 0:
-                mean = np.mean(flowNorm)
-                var = np.var(flowNorm)
+                flowMean = np.mean(flowNorm)
+                flowVar = np.var(flowNorm)
             else:
-                mean = 0
-                var = 0
-            tmpMean_lst.append(mean)
-            tmpVar_lst.append(var)
+                flowMean = 0
+                flowVar = 0
+
+            #remove disturbance
+            if flowVar > 200:
+                flowMean = 0
+                flowVar = 0
+                flowMax = 0
+            else:
+                pass
+
+            tmpMean_lst.append(flowMean)
+            tmpVar_lst.append(flowVar)
+            tmpMax_lst.append(flowMax)
             assert len(tmpMax_lst) == windowSize, "tmpMax_lst length is not windowSize"
             assert len(tmpMean_lst) == windowSize, "tmpMean_lst length is not windowSize"
             assert len(tmpVar_lst) == windowSize, "tmpVar_lst length is not windowSize"
