@@ -154,6 +154,11 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
             text = "NUM:{0}  prev:{1}  next:{2}\n".format(frameNum, prevFeatureFiltered.shape[0], nextFeatureFiltered.shape[0])
             f.write(text)
 
+    def save_cordinate(filePath):
+        fileName = filePath.split('/')[-1].split('.')[0]
+        np.save("../data/coordinate/{}_coordinateX.npy".format(fileName), np.array(coordinateX_lst))
+        np.save("../data/coordinate/{}_coordinateY.npy".format(fileName), np.array(coordinateY_lst))
+
     #-------------------------------------------------------
     # preprocessing
     #-------------------------------------------------------
@@ -273,9 +278,7 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
     print("\nvarList length: {}".format(len(var_lst)))
     print("\nmaxList length: {}".format(len(max_lst)))
 
-    #fileName = filePath.split('/')[-1].split('.')[0]
-    #np.save("../data/coordinate/{}_coordinateX.npy".format(fileName), np.array(coordinateX_lst))
-    #np.save("../data/coordinate/{}_coordinateY.npy".format(fileName), np.array(coordinateY_lst))
+    #save_cordinate(filePath)
 
     plot_graph.mean_var_plot(mean_lst, var_lst, window, filePath)
     plot_graph.max_plot(max_lst, window, filePath)
