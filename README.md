@@ -20,7 +20,7 @@ conda install -c https://conda.anaconda.org/menpo opencv3
 5. luminance.py
     * get luminance by differential between two frames
 6. cumulative.py
-	* cumulate dense optical flow iin any step interval
+	* cumulate dense optical flow in any step interval
 
 ## info
 ### help command
