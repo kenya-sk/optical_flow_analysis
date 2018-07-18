@@ -4,10 +4,6 @@
 #Whitelist anything that's a directory
 !*/
 
-#ignore certain directory
-movie/
-image/
-time/
 
 #And all the file types I'm interested in.
 !.gitignore
