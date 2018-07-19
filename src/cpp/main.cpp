@@ -273,10 +273,10 @@ void calc_opticalflow(string inputFilePath, bool output){
     // excluding ".mp4" from fileName
     fileName.erase(fileName.end() - 4 ,fileName.end());
 
-    //make_csv(meanVec, "/Users/sakka/FastAnomalyDetection/data/2017-04-28/mean/mean_" + fileName + ".csv");
-    //make_csv(varVec, "/Users/sakka/FastAnomalyDetection/data/2017-04-28/var/var_" + fileName + ".csv");
-    //make_csv(maxVec, "/Users/sakka/FastAnomalyDetection/data/2017-04-28/max/max_" + fileName + ".csv");
-    //make_csv(humanVec, "/Users/sakka/FastAnomalyDetection/data/2017-04-28/human/human_" + fileName + ".csv");
+    make_csv(meanVec, "/Users/sakka/FastAnomalyDetection/data/2017-04-28/mean/mean_" + fileName + ".csv");
+    make_csv(varVec, "/Users/sakka/FastAnomalyDetection/data/2017-04-28/var/var_" + fileName + ".csv");
+    make_csv(maxVec, "/Users/sakka/FastAnomalyDetection/data/2017-04-28/max/max_" + fileName + ".csv");
+    make_csv(humanVec, "/Users/sakka/FastAnomalyDetection/data/2017-04-28/human/human_" + fileName + ".csv");
 }
 
 
