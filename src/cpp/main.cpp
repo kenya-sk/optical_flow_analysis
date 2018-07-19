@@ -5,13 +5,11 @@
 #include <deque>
 #include <algorithm>
 #include <fstream>
-#include <cv.h>
-#include <highgui.h>
-#include <ctype.h>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <ctype.h>
 
 using namespace std;
 
