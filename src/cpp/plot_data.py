@@ -4,62 +4,57 @@
 import sys
 import os
 import re
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_graph(direcPath, normalize=False):
-    # get path of csv file from directory
-    def get_filePath(direcPath):
-        filePath_lst = os.listdir(direcPath)
-        filePath_lst = list(filter(lambda filePath: ".csv" in filePath, filePath_lst))
-
-        return filePath_lst
-
+def plot_graph(direc_path, normalize=False):
     # read data from csv file and store it in list
-    def read_data(filePath):
-        readValue_lst = []
+    def read_data(file_path):
+        value_lst = []
         try:
-            with open(filePath, 'r') as f:
+            with open(file_path, 'r') as f:
                 lines = f.readlines()
         except FileNotFoundError:
-            print("Not Found {0} ! ".format(filePath))
+            print("Not Found {0} ! ".format(file_path))
             sys.exit(1)
 
         for line in lines:
-            readValue_lst.append(float(line.strip('\n')))
+            value_lst.append(float(line.strip('\n')))
 
-        return readValue_lst
+        return value_lst
 
     value_lst = []
-    filePath_lst = get_filePath(direcPath)
-    for filePath in filePath_lst:
-        value_lst.extend(read_data(direcPath + filePath))
+    file_path_lst = glob.glob(direc_path+"*.csv")
+    for path in file_path_lst:
+        value_lst.extend(read_data(path))
 
     fig = plt.figure(figsize=(20, 6))
     ax = fig.add_subplot(1,1,1)
     # title of graph ex) mean value (total)
-    type = str(direcPath.split('/')[-2])
-    plt.title(type + " value (total)")
+    statistic_type = str(direc_path.split('/')[-2])
+    plt.title(statistic_type + " value (total)")
     # set value of x axis
-    valueX = []
+    value_x = []
     for i in range(len(value_lst)):
-        valueX.append(i)
-    valueXLimMin = valueX[0]
-    valueXLimMax = valueX[-1]
+        value_x.append(i)
+    value_x_lim_min = value_x[0]
+    value_x_lim_max = value_x[-1]
+    print(len(value_x))
 
     if normalize:
         # normalize and set axis range to 0-1
         value_lst = np.array(value_lst)/max(value_lst)
-        valueYLimMin = 0
-        valueYLimMax = 1
+        value_y_lim_min = 0
+        value_y_lim_max = 1
     else:
-        valueYLimMin = 0
-        valueYLimMax = max(value_lst)*1.01
+        value_y_lim_min = 0
+        value_y_lim_max = max(value_lst)*1.01
 
-    valueYLimMax = 1.0
-    plt.xlim(valueXLimMin, valueXLimMax)
-    plt.ylim(valueYLimMin, valueYLimMax)
+    value_y_lim_max = 150
+    plt.xlim(value_x_lim_min, value_x_lim_max)
+    plt.ylim(value_y_lim_min, value_y_lim_max)
     plt.tick_params(labelsize=8)
     plt.xticks(rotation=90)
 
@@ -84,14 +79,14 @@ def plot_graph(direcPath, normalize=False):
                         ])
 
     plt.grid(True)
-    plt.plot(valueX, value_lst)
-    plt.savefig("../image/graph/2017-04-28/out_" + type + "_total.png" )
+    plt.plot(value_x, value_lst)
+    plt.savefig("/Users/sakka/optical_flow_analysis/image/graph/2017-04-21/out_" + statistic_type + "_total.png" )
     plt.close(fig)
-    print("DONE: {}".format("/".join(direcPath.split('/')[-3:-1])))
+    print("DONE: {}".format("/".join(direc_path.split('/')[-3:-1])))
 
 
 if __name__ == "__main__":
-    #plot_graph("../data/2017-04-28/mean/", False)
-    #plot_graph("../data/2017-04-28/var/", False)
-    #plot_graph("../data/2017-04-28/max/", False)
-    plot_graph("../data/2017-04-28/human/", False)
+    plot_graph("/Users/sakka/optical_flow_analysis/data/2017-04-21/mean/", False)
+    plot_graph("/Users/sakka/optical_flow_analysis/data/2017-04-21/var/", False)
+    plot_graph("/Users/sakka/optical_flow_analysis/data/2017-04-21/max/", False)
+    plot_graph("/Users/sakka/optical_flow_analysis/data/2017-04-21/human/", False)
