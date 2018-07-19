@@ -44,7 +44,7 @@ def mean_var_plot(mean_lst, var_lst, window,  filePath):
     plt.ylabel('mean')
     set_graph(mean_lst)
     fileName = filePath.split('/')[-1].split('.')[0] + '_mean_{}.png'.format(window)
-    plt.savefig('../image/total_17_18/' + fileName)
+    plt.savefig('/Users/sakka/optical_flow_analysis/image/' + fileName)
     #fill_region(frameList)
 
     # variance list
@@ -56,7 +56,7 @@ def mean_var_plot(mean_lst, var_lst, window,  filePath):
     set_graph(var_lst)
     #fill_region(frameList)
     fileName = filePath.split('/')[-1].split('.')[0] + '_var_{}.png'.format(window)
-    plt.savefig('../image/total_17_18/' + fileName)
+    plt.savefig( '/Users/sakka/optical_flow_analysis/image/' + fileName)
     print('\n'+fileName + ' graph success !\n')
 
 def max_plot(max_lst, window, filePath):
@@ -67,5 +67,5 @@ def max_plot(max_lst, window, filePath):
     plt.ylabel('max')
     set_graph(max_lst)
     fileName = filePath.split('/')[-1].split('.')[0] + '_max_{}.png'.format(window)
-    plt.savefig('../image/total_17_18/' + fileName)
+    plt.savefig('/Users/sakka/optical_flow_analysis/image/' + fileName)
     print('\n'+fileName + ' graph success !\n')

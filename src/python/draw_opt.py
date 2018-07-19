@@ -156,8 +156,8 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
 
     def save_cordinate(filePath):
         fileName = filePath.split('/')[-1].split('.')[0]
-        np.save("../data/coordinate/{}_coordinateX.npy".format(fileName), np.array(coordinateX_lst))
-        np.save("../data/coordinate/{}_coordinateY.npy".format(fileName), np.array(coordinateY_lst))
+        np.save("/Users/sakka/optical_flow_analysis/data/coordinate/{}_coordinateX.npy".format(fileName), np.array(coordinateX_lst))
+        np.save("/Users/sakka/optical_flow_analysis/data/coordinate/{}_coordinateY.npy".format(fileName), np.array(coordinateY_lst))
 
     #-------------------------------------------------------
     # preprocessing
@@ -167,7 +167,7 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
     print("start calculation of optical flow")
     point_lst = init_gage(totalFrame)
     if output:
-        out = cv2.VideoWriter('../movie/out/out_' + filePath.split('/')[-1],
+        out = cv2.VideoWriter('/Users/sakka/optical_flow_analysis/movie/1min/output/out_' + filePath.split('/')[-1],
         fourcc, FPS, (WIDTH, HEIGHT))
     else:
         pass
@@ -186,7 +186,7 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
     #tmpVar_lst = []
     #tmpMean_lst = []
     feature_params, lk_params = set_sparse_parm()
-    mask = load_mask('../image/image_data/mask.png')
+    mask = load_mask('/Users/sakka/optical_flow_analysis/image/mask.png')
     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
     #dens_mask = cv2.imread("../image/image_data/density.png")
     #-------------------------------------------------------
@@ -253,7 +253,7 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
                 #write frame number
                 text = "[ Frame Number: {0:04d} ]".format(frameNum)
                 cv2.putText(flowImg, text, (850, 680), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
-                cv2.imshow("flow img", flowImg)
+                #cv2.imshow("flow img", flowImg)
                 out.write(flowImg)
                 if frameNum % int(FPS) == 0:
                     flowMask = np.zeros((HEIGHT, WIDTH, 3), np.uint8)
@@ -269,9 +269,9 @@ def calc_flow(filePath, tmpMean_lst, tmpVar_lst, tmpMax_lst, window=30, output=F
     if output:  out.release()
     cv2.destroyAllWindows()
 
-    np.save("./mean.npy", np.array(mean_lst))
-    np.save("./var.npy", np.array(var_lst))
-    np.save("./max.npy", np.array(max_lst))
+    np.save("/Users/sakka/optical_flow_analysis/data/mean/mean.npy", np.array(mean_lst))
+    np.save("/Users/sakka/optical_flow_analysis/data/var/var.npy", np.array(var_lst))
+    np.save("/Users/sakka/optical_flow_analysis/data/max/max.npy", np.array(max_lst))
 
     print("\nend calculation optical flow")
     print("\nmeanList length: {}".format(len(mean_lst)))

@@ -49,7 +49,7 @@ def make_cumulative_video(filePath, windowSize=5):
         return img
 
     cap, fourcc, FPS, HEIGHT, WIDTH, totalFrame = draw_opt.set_capture(filePath)
-    output = cv2.VideoWriter("../movie/cumulative.mp4", fourcc, FPS, (WIDTH, HEIGHT))
+    output = cv2.VideoWriter("/Users/sakka/optical_flow_analysis/movie/cumulative.mp4", fourcc, FPS, (WIDTH, HEIGHT))
     cap.set(cv2.CAP_PROP_POS_MSEC, 3 * 1000)    # initial frame
     ret, prev = cap.read()
     prevGray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
