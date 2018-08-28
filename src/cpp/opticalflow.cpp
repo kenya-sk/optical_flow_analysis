@@ -49,7 +49,7 @@ vector<float> calc_norm(vector<Pixel> &flow)
     return flow_norm;
 }
 
-void calc_opticalflow(string input_file_path, string output_path) {
+void calc_opticalflow(string input_file_path, string output_stats_dircpath, string output_movie_path) {
     cv::VideoCapture capture(input_file_path);
     int width = (int)capture.get(CV_CAP_PROP_FRAME_WIDTH);
     int height = (int)capture.get(CV_CAP_PROP_FRAME_HEIGHT);
@@ -76,9 +76,9 @@ void calc_opticalflow(string input_file_path, string output_path) {
 
     // set output file
     cv::VideoWriter writer;
-    if (!output_path.empty()) {
-        writer = cv::VideoWriter(output_path, fourcc, fps / fps_interval, cv::Size(width, height), true);
-        cout << "output file path: " << output_path << endl;
+    if (!output_movie_path.empty()) {
+        writer = cv::VideoWriter(output_movie_path, fourcc, fps / fps_interval, cv::Size(width, height), true);
+        cout << "output file path: " << output_movie_path << endl;
     }
 
     // end if mask image can not be read
@@ -165,7 +165,7 @@ void calc_opticalflow(string input_file_path, string output_path) {
                 human_vec.push_back(ratio);
 
                 // write optical flow to the image
-                if (!output_path.empty()) {
+                if (!output_movie_path.empty()) {
                     for (unsigned int i = 0; i < curr_corners.size(); i++) {
                         if (status[i] == 1) {
                             cv::circle(frame, prev_corners[i], 3, cv::Scalar(0, 0, 255), -1, CV_AA);
@@ -185,8 +185,8 @@ void calc_opticalflow(string input_file_path, string output_path) {
     // excluding ".mp4" from fileName
     file_name.erase(file_name.end() - 4, file_name.end());
 
-    make_csv(mean_vec, "/Users/sakka/optical_flow_analysis/data/2017-04-21/mean/mean_" + file_name + ".csv");
-    make_csv(var_vec, "/Users/sakka/optical_flow_analysis/data/2017-04-21/var/var_" + file_name + ".csv");
-    make_csv(max_vec, "/Users/sakka/optical_flow_analysis/data/2017-04-21/max/max_" + file_name + ".csv");
-    make_csv(human_vec, "/Users/sakka/optical_flow_analysis/data/2017-04-21/human/human_" + file_name + ".csv");
+    make_csv(mean_vec, output_stats_dircpath+"/mean.csv");
+    make_csv(var_vec, output_stats_dircpath+"var.csv");
+    make_csv(max_vec, output_stats_dircpath+"/max.csv");
+    make_csv(human_vec, output_stats_dircpath+"/human.csv");
 }

@@ -15,28 +15,31 @@ using namespace std;
 
 typedef cv::Point2f Pixel;
 
-extern void calc_opticalflow(string input_file_path, string output_path);
+extern void calc_opticalflow(string input_file_path, string output_stats_path, string output_movie_path);
 
     int main(int argc, char **argv) {
     chrono::system_clock::time_point start, end;
     start = chrono::system_clock::now();
     string input_file_path;
+    string output_stats_dircpath;
     string is_saved_movie = "0";
-    string output_path = "";
+    string output_movie_path = "";
 
     // receive processing file path from standard input
-    cout << "Input movie file path: ";
+    cout << "input movie file path: ";
     cin >> input_file_path;
+    cout << "input the output statistics directory: ";
+    cin >> output_stats_dircpath;
     cout << "save optical flow movie (0:NO, 1:YES)";
     cin >> is_saved_movie;
     if(stoi(is_saved_movie)) {
         cout << "input the output file path: ";
-        cin >> output_path;
+        cin >> output_movie_path;
     }else{
         cout << "Not save output movie." << endl;
     }
 
-    calc_opticalflow(input_file_path, output_path);
+    calc_opticalflow(input_file_path, output_stats_dircpath, output_movie_path);
     cout << "end: " << input_file_path << endl;
 
 
