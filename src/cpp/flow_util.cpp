@@ -71,7 +71,7 @@ void make_csv(vector<float> &data_vec, string output_file_path) {
         exit(1);
     }
     ofs.close();
-    cout << "out put csv file: " << output_file_path << endl;
+    cout << "output csv file: " << output_file_path << endl;
 }
 
 
