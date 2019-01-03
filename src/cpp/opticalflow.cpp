@@ -87,8 +87,10 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     // human area extraction mask
     cv::Mat human_mask = cv::imread("/Users/sakka/optical_flow_analysis/image/human_mask.png");
     cv::Mat bin_human_mask = read_mask_image("/Users/sakka/optical_flow_analysis/image/bin_human_mask.png");
-
+    // frame data using optical flow
     cv::Mat frame, prev_gray, curr_gray;
+    // save the trajectory of tracking
+    cv::Mat tracking_mask = cv::Mat::zeros(cv::Size(width, height), CV_8UC3);
     // store feature points of previous and next frames
     vector<Pixel> prev_corners, curr_corners;
     // whether correspondence of each feature point was found between two frames
@@ -104,6 +106,12 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     vector<Pixel> flow;
     float flow_mean = 0.0, flow_var = 0.0, flow_max = 0.0;
     int frame_num = 0;
+
+    // skip until first frame
+    for (int i=0; i<int(4*fps); i++) {
+        capture >> frame;
+        frame_num ++;
+    }
 
     while (true) {
         capture >> frame;
@@ -166,15 +174,29 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
 
                 // write optical flow to the image
                 if (!output_movie_path.empty()) {
+                    // add the current trajectory to the past trajectory
                     for (unsigned int i = 0; i < curr_corners.size(); i++) {
                         if (status[i] == 1) {
-                            cv::circle(frame, prev_corners[i], 3, cv::Scalar(0, 0, 255), -1, CV_AA);
-                            cv::line(frame, prev_corners[i], curr_corners[i], cv::Scalar(0, 0, 255), 1, CV_AA);
+                            cv::line(tracking_mask, prev_corners[i], curr_corners[i], cv::Scalar(0, 0, 255), 2, CV_AA);
                         }
                     }
+                    // only plot current feature point
+                    cv::add(frame, tracking_mask, frame);
+                    for (unsigned int i=0; i < curr_corners.size(); i++){
+                        if (status[i] == 1) {
+                            cv::circle(frame, curr_corners[i], 2, cv::Scalar(0, 0, 255), -1, CV_AA);
+                        }
+                    }
+                    // save image trajectory
                     writer << frame;
                 }
             }
+
+            // reset tracking mask for every 1 sec
+            if (frame_num%int(fps) == 0) {
+                tracking_mask = cv::Mat::zeros(cv::Size(width, height), CV_8UC3);
+            }
+
             prev_gray = curr_gray.clone();
         }
     }
