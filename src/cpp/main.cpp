@@ -11,11 +11,17 @@
 #include <opencv2/imgcodecs.hpp>
 #include <ctype.h>
 
-using namespace std;
+using std::cin;
+using std::cout;
+using std::endl;
+using std::string;
+
+using namespace std::chrono;
 
 typedef cv::Point2f Pixel;
 
 extern void calc_opticalflow(string input_file_path, string output_stats_path, string output_movie_path);
+
 
 int main(int argc, char **argv) {
     string input_file_path;
@@ -37,14 +43,14 @@ int main(int argc, char **argv) {
         cout << "Not save output video." << endl;
     }
 
-    chrono::system_clock::time_point start, end;
-    start = chrono::system_clock::now();
+    system_clock::time_point start, end;
+    start = system_clock::now();
     
     // calculate optical flow by above parameters
     calc_opticalflow(input_file_path, output_stats_dircpath, output_video_path);
 
-	end = chrono::system_clock::now();
-    double elapsed = chrono::duration_cast <chrono::seconds>(end - start).count();
+	end = system_clock::now();
+    double elapsed = duration_cast <seconds>(end - start).count();
     cout << "time: " << elapsed << " sec." << endl;
 
     return 0;

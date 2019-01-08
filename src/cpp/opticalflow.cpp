@@ -11,16 +11,22 @@
 #include <opencv2/imgcodecs.hpp>
 #include <ctype.h>
 
-using namespace std;
+using std::cout;
+using std::endl;
+using std::string;
+using std::deque;
+using std::vector;
 
 typedef cv::Point2f Pixel;
 
+extern void pretty_print(string input_file_path, int width, int height, int total_frame, int fourcc, double fps);
 extern cv::Mat read_mask_image(string mask_path);
 extern string StringSplit(string &str, char sep);
 extern string get_outputPath(string input_file_path);
 extern void make_csv(vector<float> &data_vec, string output_file_path);
 extern float calc_var(vector<float> &value, float mean);
 extern float calc_area_ratio(cv::Mat &img, cv::Mat &bin_mask_img);
+
 
 // calculate the optical flow of each feature point between two frames
 vector<Pixel> calc_flow(vector<Pixel> &prev_corners, vector<Pixel> &curr_corners, vector<uchar> &status) {
@@ -65,14 +71,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     }
 
     // display information of input file
-    std::cout << "\n*******************************************" << std::endl;
-    std::cout << "VIDEO PATH: " << input_file_path << std::endl;
-    std::cout << "WIDTH: " << width << std::endl;
-    std::cout << "HEIGHT: " << height << std::endl;
-    std::cout << "TOTAL FRAME: " << total_frame << std::endl;
-    std::cout << "FOURCC: " << fourcc << std::endl;
-    std::cout << "FPS: " << fps << std::endl;
-    std::cout << "*******************************************\n" << std::endl;
+    pretty_print(input_file_path, width, height, total_frame, fourcc, fps);
 
     // set output file
     cv::VideoWriter writer;
@@ -203,6 +202,8 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
         }
     }
     cv::destroyAllWindows();
+
+    cout << "DONE: optical flow" << endl;
 
     string file_name;
     file_name = StringSplit(input_file_path, '/');

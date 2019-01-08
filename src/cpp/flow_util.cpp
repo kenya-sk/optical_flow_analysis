@@ -11,9 +11,28 @@
 #include <opencv2/imgcodecs.hpp>
 #include <ctype.h>
 
-using namespace std;
+using std::cout;
+using std::endl;
+using std::string;
+using std::vector;
+using std::istringstream;
+using std::ofstream;
+
 
 typedef cv::Point2f Pixel;
+
+void pretty_print(string input_file_path, int width, int height, int total_frame, int fourcc, double fps) {
+    // display information of input file
+    std::cout << "\n*******************************************" << std::endl;
+    std::cout << "VIDEO PATH: " << input_file_path << std::endl;
+    std::cout << "WIDTH: " << width << std::endl;
+    std::cout << "HEIGHT: " << height << std::endl;
+    std::cout << "TOTAL FRAME: " << total_frame << std::endl;
+    std::cout << "FOURCC: " << fourcc << std::endl;
+    std::cout << "FPS: " << fps << std::endl;
+    std::cout << "******************************************* \n" << std::endl;
+}
+
 
 cv::Mat read_mask_image(string mask_path) {
     cv::Mat mask = cv::imread(mask_path, CV_LOAD_IMAGE_GRAYSCALE);
