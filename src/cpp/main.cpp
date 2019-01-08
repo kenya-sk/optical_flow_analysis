@@ -17,9 +17,7 @@ typedef cv::Point2f Pixel;
 
 extern void calc_opticalflow(string input_file_path, string output_stats_path, string output_movie_path);
 
-    int main(int argc, char **argv) {
-    chrono::system_clock::time_point start, end;
-    start = chrono::system_clock::now();
+int main(int argc, char **argv) {
     string input_file_path;
     string output_stats_dircpath;
     string is_saved_movie = "0";
@@ -39,9 +37,11 @@ extern void calc_opticalflow(string input_file_path, string output_stats_path, s
         cout << "Not save output movie." << endl;
     }
 
+    chrono::system_clock::time_point start, end;
+    start = chrono::system_clock::now();
+    
+    // calculate optical flow by above parameters
     calc_opticalflow(input_file_path, output_stats_dircpath, output_movie_path);
-    cout << "end: " << input_file_path << endl;
-
 
 	end = chrono::system_clock::now();
     double elapsed = chrono::duration_cast <chrono::seconds>(end - start).count();

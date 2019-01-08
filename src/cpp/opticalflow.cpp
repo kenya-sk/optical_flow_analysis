@@ -39,8 +39,8 @@ vector<float> calc_norm(vector<Pixel> &flow)
 {
     float pow_norm = 0.0;
     vector<float> flow_norm;
-    for (unsigned int i = 0; i < flow.size(); i++)
-    {
+
+    for (unsigned int i = 0; i < flow.size(); i++) {
         pow_norm = (flow[i].x * flow[i].x) + (flow[i].y * flow[i].y);
         flow_norm.push_back(sqrt(pow_norm));
     }
@@ -130,9 +130,11 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                 cv::goodFeaturesToTrack(prev_gray, prev_corners, 150, 0.2, 5, aqua_mask);
                 // compute the optical flow and calculate the size(flow_norm)
                 // only when the corresponding feature points is found
-                cv::calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_corners, curr_corners, status, error, cv::Size(20, 20), 5);
-                flow = calc_flow(prev_corners, curr_corners, status);
-                flow_norm = calc_norm(flow);
+                if (prev_corners.size() > 0){
+                    cv::calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_corners, curr_corners, status, error, cv::Size(20, 20), 5);
+                    flow = calc_flow(prev_corners, curr_corners, status);
+                    flow_norm = calc_norm(flow);
+                }
                 // calculate mean, variance and maximum of optical flow
                 flow_mean = accumulate(begin(flow_norm), end(flow_norm), 0.0) / flow_norm.size();
                 flow_var = calc_var(flow_norm, flow_mean);
@@ -184,7 +186,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                     cv::add(frame, tracking_mask, frame);
                     for (unsigned int i=0; i < curr_corners.size(); i++){
                         if (status[i] == 1) {
-                            cv::circle(frame, curr_corners[i], 2, cv::Scalar(0, 0, 255), -1, CV_AA);
+                            cv::circle(frame, curr_corners[i], 3, cv::Scalar(0, 0, 255), -1, CV_AA);
                         }
                     }
                     // save image trajectory
