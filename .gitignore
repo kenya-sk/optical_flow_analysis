@@ -12,6 +12,7 @@
 !*.h
 !*.sh
 !*.md
+!Makefile
 !CMakeLists.txt
 
 .ipynb_checkpoints
