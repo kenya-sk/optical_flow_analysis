@@ -20,28 +20,28 @@ extern void calc_opticalflow(string input_file_path, string output_stats_path, s
 int main(int argc, char **argv) {
     string input_file_path;
     string output_stats_dircpath;
-    string is_saved_movie = "0";
-    string output_movie_path = "";
+    string is_saved_video = "0";
+    string output_video_path = "";
 
     // receive processing file path from standard input
-    cout << "input movie file path: ";
+    cout << "input video file path: ";
     cin >> input_file_path;
     cout << "input the output statistics directory: ";
     cin >> output_stats_dircpath;
-    cout << "save optical flow movie (0:NO, 1:YES)";
-    cin >> is_saved_movie;
-    if(stoi(is_saved_movie)) {
+    cout << "save optical flow video (0:NO, 1:YES)";
+    cin >> is_saved_video;
+    if(stoi(is_saved_video)) {
         cout << "input the output file path: ";
-        cin >> output_movie_path;
+        cin >> output_video_path;
     }else{
-        cout << "Not save output movie." << endl;
+        cout << "Not save output video." << endl;
     }
 
     chrono::system_clock::time_point start, end;
     start = chrono::system_clock::now();
     
     // calculate optical flow by above parameters
-    calc_opticalflow(input_file_path, output_stats_dircpath, output_movie_path);
+    calc_opticalflow(input_file_path, output_stats_dircpath, output_video_path);
 
 	end = chrono::system_clock::now();
     double elapsed = chrono::duration_cast <chrono::seconds>(end - start).count();

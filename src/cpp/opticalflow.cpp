@@ -49,7 +49,7 @@ vector<float> calc_norm(vector<Pixel> &flow)
     return flow_norm;
 }
 
-void calc_opticalflow(string input_file_path, string output_stats_dircpath, string output_movie_path) {
+void calc_opticalflow(string input_file_path, string output_stats_dircpath, string output_video_path) {
     cv::VideoCapture capture(input_file_path);
     int width = (int)capture.get(CV_CAP_PROP_FRAME_WIDTH);
     int height = (int)capture.get(CV_CAP_PROP_FRAME_HEIGHT);
@@ -60,13 +60,13 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
 
     // end if video can not be read
     if (!capture.isOpened()) {
-        cout << "Error: can not open movie file." << endl;
+        cout << "Error: can not open video file." << endl;
         exit(1);
     }
 
     // display information of input file
     std::cout << "\n*******************************************" << std::endl;
-    std::cout << "MOVIE PATH: " << input_file_path << std::endl;
+    std::cout << "VIDEO PATH: " << input_file_path << std::endl;
     std::cout << "WIDTH: " << width << std::endl;
     std::cout << "HEIGHT: " << height << std::endl;
     std::cout << "TOTAL FRAME: " << total_frame << std::endl;
@@ -76,9 +76,9 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
 
     // set output file
     cv::VideoWriter writer;
-    if (!output_movie_path.empty()) {
-        writer = cv::VideoWriter(output_movie_path, fourcc, fps / fps_interval, cv::Size(width, height), true);
-        cout << "output file path: " << output_movie_path << endl;
+    if (!output_video_path.empty()) {
+        writer = cv::VideoWriter(output_video_path, fourcc, fps / fps_interval, cv::Size(width, height), true);
+        cout << "output file path: " << output_video_path << endl;
     }
 
     // end if mask image can not be read
@@ -175,7 +175,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                 human_vec.push_back(ratio);
 
                 // write optical flow to the image
-                if (!output_movie_path.empty()) {
+                if (!output_video_path.empty()) {
                     // add the current trajectory to the past trajectory
                     for (unsigned int i = 0; i < curr_corners.size(); i++) {
                         if (status[i] == 1) {
