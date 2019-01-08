@@ -56,7 +56,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     int total_frame = (int)capture.get(CV_CAP_PROP_FRAME_COUNT);
     int fourcc = (int)capture.get(CV_CAP_PROP_FOURCC);
     double fps = (double)capture.get(CV_CAP_PROP_FPS);
-    int fps_interval = 2; // spaceing to save frames
+    int skip_interval = 1; // skip interval of calcuration
 
     // end if video can not be read
     if (!capture.isOpened()) {
@@ -77,7 +77,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     // set output file
     cv::VideoWriter writer;
     if (!output_video_path.empty()) {
-        writer = cv::VideoWriter(output_video_path, fourcc, fps / fps_interval, cv::Size(width, height), true);
+        writer = cv::VideoWriter(output_video_path, fourcc, fps / skip_interval, cv::Size(width, height), true);
         cout << "output file path: " << output_video_path << endl;
     }
 
@@ -99,7 +99,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     // represents the difference between the feature points
     // before and after the movement region
     vector<float> error;
-    int window_size = ceil(fps / fps_interval);
+    int window_size = ceil(fps / skip_interval);
     // retain value for window_size
     deque<float> tmp_mean_deq(window_size - 1, 0.0), tmp_var_deq(window_size - 1, 0.0), tmp_max_deq(window_size - 1, 0.0);
     vector<float> flow_norm, mean_vec, var_vec, max_vec, human_vec;
@@ -123,7 +123,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
             cout << "frame number: " << frame_num << "/" << total_frame << endl;
         }
 
-        if (frame_num % fps_interval == 0){
+        if (frame_num % skip_interval == 0){
             cv::cvtColor(frame, curr_gray, CV_RGB2GRAY);
             if (!prev_gray.empty()) {
                 // extraction of feature points
