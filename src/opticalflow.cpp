@@ -88,22 +88,29 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     // end if mask image can not be read
     // aquarium area extraction mask
     cv::Mat aqua_mask = read_mask_image("../image/mask.png");
+
     // human area extraction mask
     cv::Mat human_mask = cv::imread("../image/human_mask.png");
     cv::Mat bin_human_mask = read_mask_image("../image/bin_human_mask.png");
+
     // frame data using optical flow
     cv::Mat frame, prev_gray, curr_gray;
+
     // save the trajectory of tracking
     cv::Mat tracking_mask = cv::Mat::zeros(cv::Size(width, height), CV_8UC3);
+
     // store feature points of previous and next frames
     vector<Pixel> prev_corners, curr_corners;
+
     // whether correspondence of each feature point was found between two frames
     // 0:false 1:true
     vector<uchar> status;
+
     // represents the difference between the feature points
     // before and after the movement region
     vector<float> error;
     int window_size = ceil(fps / skip_interval);
+
     // retain value for window_size
     deque<float> tmp_mean_deq(window_size - 1, 0.0), tmp_var_deq(window_size - 1, 0.0), tmp_max_deq(window_size - 1, 0.0);
     vector<float> flow_norm, mean_vec, var_vec, max_vec, human_vec;
@@ -132,6 +139,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
             if (!prev_gray.empty()) {
                 // extraction of feature points
                 cv::goodFeaturesToTrack(prev_gray, prev_corners, 150, 0.2, 5, aqua_mask);
+
                 // compute the optical flow and calculate the size(flow_norm)
                 // only when the corresponding feature points is found
                 if (prev_corners.size() > 0){
@@ -139,6 +147,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                     flow = calc_flow(prev_corners, curr_corners, status);
                     flow_norm = calc_norm(flow);
                 }
+
                 // calculate mean, variance and maximum of optical flow
                 flow_mean = accumulate(begin(flow_norm), end(flow_norm), 0.0) / flow_norm.size();
                 flow_var = calc_var(flow_norm, flow_mean);
@@ -148,6 +157,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                 else {
                     flow_max = 0.0;
                 }
+
                 // disorder of video is detected based on the value of dispersion
                 if (flow_var > 200) {
                     cout << "variance: " << flow_var << endl;
@@ -156,6 +166,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                     flow_max = 0.0;
                 }
 
+                // save statistics value of current frame
                 tmp_mean_deq.push_back(flow_mean);
                 tmp_var_deq.push_back(flow_var);
                 tmp_max_deq.push_back(flow_max);
@@ -163,6 +174,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                 assert(tmp_var_deq.size() == window_size);
                 assert(tmp_max_deq.size() == window_size);
 
+                // cumulate window_size value
                 mean_vec.push_back(std::accumulate(tmp_mean_deq.begin(), tmp_mean_deq.end(), 0.0));
                 var_vec.push_back(std::accumulate(tmp_var_deq.begin(), tmp_var_deq.end(), 0.0));
                 max_vec.push_back(std::accumulate(tmp_max_deq.begin(), tmp_max_deq.end(), 0.0));
@@ -212,7 +224,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
 
     string file_name;
     file_name = string_split(input_file_path, '/');
-    // excluding ".mp4" from fileName
+    // excluding ".mp4" from file_name
     file_name.erase(file_name.end() - 4, file_name.end());
 
     make_csv(mean_vec, output_stats_dircpath+"/mean.csv");
