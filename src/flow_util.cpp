@@ -22,7 +22,10 @@ using std::ofstream;
 typedef cv::Point2f Pixel;
 
 void pretty_print(string input_file_path, int width, int height, int total_frame, int fourcc, double fps) {
-    // display information of input file
+    /*
+    display information of input file.
+    */
+
     std::cout << "\n*******************************************" << std::endl;
     std::cout << "VIDEO PATH: " << input_file_path << std::endl;
     std::cout << "WIDTH: " << width << std::endl;
@@ -35,6 +38,13 @@ void pretty_print(string input_file_path, int width, int height, int total_frame
 
 
 cv::Mat read_mask_image(string mask_path) {
+    /*
+    read binary mask image.
+    mask image defined bellow:
+        not calculated pixel = 0
+        calculated pixel = 1 or 255
+    */
+
     cv::Mat mask = cv::imread(mask_path, CV_LOAD_IMAGE_GRAYSCALE);
     if (mask.empty()) {
         cout << "Error: can not open image file. \n"
@@ -46,8 +56,11 @@ cv::Mat read_mask_image(string mask_path) {
 }
 
 
-// split "string type" string with / to get file name
-string StringSplit(string &str, char sep) {
+string string_split(string &str, char sep) {
+    /*
+    split "string type" string with "sep" to get file name
+    */
+
     vector<string> sep_vec;
     istringstream stream(str);
     string buffer;
@@ -60,10 +73,14 @@ string StringSplit(string &str, char sep) {
 }
 
 
-// make input_file_path from outputFilePath　ex) ../201704280900.mp4 -> ../output/out_201704280900.mp4
 string get_outputPath(string input_file_path) {
+    /*
+    make input_file_path from output_file_path
+    ex) ../201704280900.mp4 -> ../output/out_201704280900.mp4
+    */
+
     string output_file_path;
-    string target = StringSplit(input_file_path, '/');
+    string target = string_split(input_file_path, '/');
     string replacement = "output/out_" + target;
     if (!target.empty()) {
         string::size_type pos = 0;
@@ -77,8 +94,11 @@ string get_outputPath(string input_file_path) {
 }
 
 
-// make csv file by vector data and absolute path of output destination
 void make_csv(vector<float> &data_vec, string output_file_path) {
+    /*
+    make csv file by vector data and absolute path of output destination
+    */
+
     ofstream ofs(output_file_path);
     if (ofs) {
         for (unsigned int i = 0; i < data_vec.size(); i++) {
@@ -94,8 +114,10 @@ void make_csv(vector<float> &data_vec, string output_file_path) {
 }
 
 
-// calculate variance by receiving vector and average value
 float calc_var(vector<float> &value, float mean) {
+    /*
+    calculate variance by receiving vector and average value
+    */
     float var = 0.0;
     for (int i = 0; i < value.size(); i++) {
         var += (value[i] - mean) * (value[i] - mean);
@@ -105,8 +127,11 @@ float calc_var(vector<float> &value, float mean) {
 }
 
 
-// calculate area ratio of specific area
 float calc_area_ratio(cv::Mat &img, cv::Mat &bin_mask_img) {
+    /*
+    calculate area ratio of specific area
+    */
+
     cv::Mat tmp_img = img.clone();
     if (tmp_img.channels() != 1) {
         cv::cvtColor(tmp_img, tmp_img, CV_RGB2GRAY);

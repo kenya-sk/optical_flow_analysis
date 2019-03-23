@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# coding: utf-8
-
 import sys
 import os
 import re
@@ -32,9 +29,11 @@ def plot_graph(direc_path, normalize=False):
 
     fig = plt.figure(figsize=(20, 6))
     ax = fig.add_subplot(1,1,1)
+
     # title of graph ex) mean value (total)
     statistic_type = str(direc_path.split('/')[-2])
     plt.title(statistic_type + " value (total)")
+
     # set value of x axis
     value_x = []
     for i in range(len(value_lst)):
@@ -80,13 +79,13 @@ def plot_graph(direc_path, normalize=False):
 
     plt.grid(True)
     plt.plot(value_x, value_lst)
-    plt.savefig("/Users/sakka/optical_flow_analysis/image/graph/2017-04-21/out_" + statistic_type + "_total.png" )
+    plt.savefig("../image/graph/2017-04-21/out_" + statistic_type + "_total.png" )
     plt.close(fig)
     print("DONE: {}".format("/".join(direc_path.split('/')[-3:-1])))
 
 
 if __name__ == "__main__":
-    plot_graph("/Users/sakka/optical_flow_analysis/data/2017-04-21/mean/", False)
-    plot_graph("/Users/sakka/optical_flow_analysis/data/2017-04-21/var/", False)
-    plot_graph("/Users/sakka/optical_flow_analysis/data/2017-04-21/max/", False)
-    plot_graph("/Users/sakka/optical_flow_analysis/data/2017-04-21/human/", False)
+    plot_graph("../data/2017-04-21/mean/", False)
+    plot_graph("../data/2017-04-21/var/", False)
+    plot_graph("../data/2017-04-21/max/", False)
+    plot_graph("../data/2017-04-21/human/", False)

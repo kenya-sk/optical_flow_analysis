@@ -21,15 +21,18 @@ typedef cv::Point2f Pixel;
 
 extern void pretty_print(string input_file_path, int width, int height, int total_frame, int fourcc, double fps);
 extern cv::Mat read_mask_image(string mask_path);
-extern string StringSplit(string &str, char sep);
+extern string string_split(string &str, char sep);
 extern string get_outputPath(string input_file_path);
 extern void make_csv(vector<float> &data_vec, string output_file_path);
 extern float calc_var(vector<float> &value, float mean);
 extern float calc_area_ratio(cv::Mat &img, cv::Mat &bin_mask_img);
 
 
-// calculate the optical flow of each feature point between two frames
 vector<Pixel> calc_flow(vector<Pixel> &prev_corners, vector<Pixel> &curr_corners, vector<uchar> &status) {
+    /*
+    calculate the optical flow of each feature point between two frames
+    */
+
     vector<Pixel> tmp_flow;
     for (unsigned int i = 0; i < prev_corners.size(); i++) {
         if (status[i] == 1) {
@@ -40,9 +43,11 @@ vector<Pixel> calc_flow(vector<Pixel> &prev_corners, vector<Pixel> &curr_corners
     return tmp_flow;
 }
 
-// calculate each norm by receiveing a vector of flow
-vector<float> calc_norm(vector<Pixel> &flow)
-{
+vector<float> calc_norm(vector<Pixel> &flow) {
+    /*
+    calculate each norm by receiveing a vector of flow
+    */
+
     float pow_norm = 0.0;
     vector<float> flow_norm;
 
@@ -82,10 +87,10 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
 
     // end if mask image can not be read
     // aquarium area extraction mask
-    cv::Mat aqua_mask = read_mask_image("/Users/sakka/optical_flow_analysis/image/mask.png");
+    cv::Mat aqua_mask = read_mask_image("../image/mask.png");
     // human area extraction mask
-    cv::Mat human_mask = cv::imread("/Users/sakka/optical_flow_analysis/image/human_mask.png");
-    cv::Mat bin_human_mask = read_mask_image("/Users/sakka/optical_flow_analysis/image/bin_human_mask.png");
+    cv::Mat human_mask = cv::imread("../image/human_mask.png");
+    cv::Mat bin_human_mask = read_mask_image("../image/bin_human_mask.png");
     // frame data using optical flow
     cv::Mat frame, prev_gray, curr_gray;
     // save the trajectory of tracking
@@ -206,7 +211,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     cout << "DONE: optical flow" << endl;
 
     string file_name;
-    file_name = StringSplit(input_file_path, '/');
+    file_name = string_split(input_file_path, '/');
     // excluding ".mp4" from fileName
     file_name.erase(file_name.end() - 4, file_name.end());
 
