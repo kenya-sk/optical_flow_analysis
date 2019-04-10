@@ -3,7 +3,7 @@
 ## workflow
 
 ```
-# Compile the files needed for execution.
+# Compile file needed for execution.
 1. ./my_make.sh
 
 # Run the compiled file and enter various paths 
