@@ -1,6 +1,6 @@
 # Optical Flow Analysis
 
-## workflow
+## Workflow
 
 ```
 # Compile file needed for execution.
@@ -15,4 +15,5 @@
 3. plot_data.py
 ```
 
-## Results
+## Demo Video
+![output](https://user-images.githubusercontent.com/30319295/56096043-f7f17e80-5f1d-11e9-88c8-ab04a54dcf59.gif)
