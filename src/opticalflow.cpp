@@ -232,7 +232,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     file_name.erase(file_name.end() - 4, file_name.end());
 
     make_csv(mean_vec, output_stats_dircpath+"/mean.csv");
-    make_csv(var_vec, output_stats_dircpath+"var.csv");
+    make_csv(var_vec, output_stats_dircpath+"/var.csv");
     make_csv(max_vec, output_stats_dircpath+"/max.csv");
     // make_csv(human_vec, output_stats_dircpath+"/human.csv");
 }
