@@ -75,7 +75,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
         exit(1);
     }
 
-    // display information of input file
+    // display the information of input file
     pretty_print(input_file_path, width, height, total_frame, fourcc, fps);
 
     // set output file
@@ -85,13 +85,12 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
         cout << "output file path: " << output_video_path << endl;
     }
 
-    // end if mask image can not be read
-    // aquarium area extraction mask
-    cv::Mat aqua_mask = read_mask_image("../image/mask.png");
+    // Mask image for extracting the target area
+    // cv::Mat aqua_mask = read_mask_image(mask_path);
+    cv::Mat aqua_mask = cv::Mat::ones(cv::Size(width, height), CV_8UC1);
 
     // human area extraction mask
-    cv::Mat human_mask = cv::imread("../image/human_mask.png");
-    cv::Mat bin_human_mask = read_mask_image("../image/bin_human_mask.png");
+    // cv::Mat bin_human_mask = read_mask_image("../image/bin_human_mask.png");
 
     // frame data using optical flow
     cv::Mat frame, prev_gray, curr_gray;
@@ -113,13 +112,17 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
 
     // retain value for window_size
     deque<float> tmp_mean_deq(window_size - 1, 0.0), tmp_var_deq(window_size - 1, 0.0), tmp_max_deq(window_size - 1, 0.0);
-    vector<float> flow_norm, mean_vec, var_vec, max_vec, human_vec;
+    // vector<float> flow_norm, mean_vec, var_vec, max_vec, human_vec;
+    vector<float> flow_norm, mean_vec, var_vec, max_vec;
     vector<Pixel> flow;
     float flow_mean = 0.0, flow_var = 0.0, flow_max = 0.0;
     int frame_num = 0;
+    int feature_num = 100;
 
-    // skip until first frame
-    for (int i=0; i<int(4*fps); i++) {
+    // If extra scenes are included, set "skip_sec".
+    // skip until first frame (not analysis time)
+    int skip_sec = 4;
+    for (int i=0; i<int(skip_sec*fps); i++) {
         capture >> frame;
         frame_num ++;
     }
@@ -130,6 +133,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
             break;
         }
         frame_num++;
+        // display progress
         if (frame_num % 100 == 0) {
             cout << "frame number: " << frame_num << "/" << total_frame << endl;
         }
@@ -138,7 +142,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
             cv::cvtColor(frame, curr_gray, CV_RGB2GRAY);
             if (!prev_gray.empty()) {
                 // extraction of feature points
-                cv::goodFeaturesToTrack(prev_gray, prev_corners, 150, 0.2, 5, aqua_mask);
+                cv::goodFeaturesToTrack(prev_gray, prev_corners, feature_num, 0.2, 5, aqua_mask);
 
                 // compute the optical flow and calculate the size(flow_norm)
                 // only when the corresponding feature points is found
@@ -187,8 +191,8 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                 assert(tmp_max_deq.size() == window_size - 1);
 
                 // calculate area ratio of human area
-                float ratio = calc_area_ratio(frame, bin_human_mask);
-                human_vec.push_back(ratio);
+                // float ratio = calc_area_ratio(frame, bin_human_mask);
+                // human_vec.push_back(ratio);
 
                 // write optical flow to the image
                 if (!output_video_path.empty()) {
@@ -202,7 +206,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
                     cv::add(frame, tracking_mask, frame);
                     for (unsigned int i=0; i < curr_corners.size(); i++){
                         if (status[i] == 1) {
-                            cv::circle(frame, curr_corners[i], 3, cv::Scalar(0, 0, 255), -1, CV_AA);
+                            cv::circle(frame, curr_corners[i], 5, cv::Scalar(0, 0, 255), -1, CV_AA);
                         }
                     }
                     // save image trajectory
@@ -230,5 +234,5 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
     make_csv(mean_vec, output_stats_dircpath+"/mean.csv");
     make_csv(var_vec, output_stats_dircpath+"var.csv");
     make_csv(max_vec, output_stats_dircpath+"/max.csv");
-    make_csv(human_vec, output_stats_dircpath+"/human.csv");
+    // make_csv(human_vec, output_stats_dircpath+"/human.csv");
 }
