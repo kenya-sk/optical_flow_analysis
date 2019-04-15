@@ -55,6 +55,6 @@ def plot_graph(stas_file_path, conv_axis_path, save_path, title, normalize=False
 if __name__ == "__main__":
     conv_axis_path = None
 
-    plot_graph("../data/stats/mean.csv", conv_axis_path, "../data/graph/mean.eps", "mean graph", False)
-    plot_graph("../data/stats/var.csv", conv_axis_path, "../data/graph/var.eps", "var graph", False)
-    plot_graph("../data/stats/max.csv", conv_axis_path, "../data/graph/max.eps", "max graph", False)
+    plot_graph("../data/stats/mean.csv", conv_axis_path, "../data/graph/mean.jpg", "mean graph", False)
+    plot_graph("../data/stats/var.csv", conv_axis_path, "../data/graph/var.jpg", "var graph", False)
+    plot_graph("../data/stats/max.csv", conv_axis_path, "../data/graph/max.jpg", "max graph", False)
