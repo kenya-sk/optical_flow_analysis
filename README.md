@@ -1,7 +1,8 @@
 # Optical Flow Analysis
+This repository calculates statistics value of movement by using saprse optical flow. 
 
 ## Workflow
-
+It is necessary to install OpenCV (>=4.0.0) in advance.
 ```
 # Compile file needed for execution.
 1. ./my_make.sh
