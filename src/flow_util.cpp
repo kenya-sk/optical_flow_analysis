@@ -45,7 +45,7 @@ cv::Mat read_mask_image(string mask_path) {
         calculated pixel = 1 or 255
     */
 
-    cv::Mat mask = cv::imread(mask_path, CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat mask = cv::imread(mask_path, cv::IMREAD_GRAYSCALE);
     if (mask.empty()) {
         cout << "Error: can not open image file. \n"
              << "PATH: " << mask_path << endl;
@@ -134,7 +134,7 @@ float calc_area_ratio(cv::Mat &img, cv::Mat &bin_mask_img) {
 
     cv::Mat tmp_img = img.clone();
     if (tmp_img.channels() != 1) {
-        cv::cvtColor(tmp_img, tmp_img, CV_RGB2GRAY);
+        cv::cvtColor(tmp_img, tmp_img, cv::COLOR_RGB2GRAY);
     }
 
     // binarizes the input image with the threshold value 150 and extracts only mask region

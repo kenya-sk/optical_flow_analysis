@@ -18,6 +18,7 @@ using std::deque;
 using std::vector;
 
 typedef cv::Point2f Pixel;
+int CV_AA = 16;
 
 extern void pretty_print(string input_file_path, int width, int height, int total_frame, int fourcc, double fps);
 extern cv::Mat read_mask_image(string mask_path);
@@ -62,11 +63,11 @@ vector<float> calc_norm(vector<Pixel> &flow) {
 
 void calc_opticalflow(string input_file_path, string output_stats_dircpath, string output_video_path) {
     cv::VideoCapture capture(input_file_path);
-    int width = (int)capture.get(CV_CAP_PROP_FRAME_WIDTH);
-    int height = (int)capture.get(CV_CAP_PROP_FRAME_HEIGHT);
-    int total_frame = (int)capture.get(CV_CAP_PROP_FRAME_COUNT);
-    int fourcc = (int)capture.get(CV_CAP_PROP_FOURCC);
-    double fps = (double)capture.get(CV_CAP_PROP_FPS);
+    int width = (int)capture.get(cv::CAP_PROP_FRAME_WIDTH);
+    int height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT);
+    int total_frame = (int)capture.get(cv::CAP_PROP_FRAME_COUNT);
+    int fourcc = (int)capture.get(cv::CAP_PROP_FOURCC);
+    double fps = (double)capture.get(cv::CAP_PROP_FPS);
     int skip_interval = 1; // skip interval of calcuration
 
     // end if video can not be read
@@ -139,7 +140,7 @@ void calc_opticalflow(string input_file_path, string output_stats_dircpath, stri
         }
 
         if (frame_num % skip_interval == 0){
-            cv::cvtColor(frame, curr_gray, CV_RGB2GRAY);
+            cv::cvtColor(frame, curr_gray, cv::COLOR_RGB2GRAY);
             if (!prev_gray.empty()) {
                 // extraction of feature points
                 cv::goodFeaturesToTrack(prev_gray, prev_corners, feature_num, 0.2, 5, aqua_mask);
