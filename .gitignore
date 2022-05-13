@@ -1,18 +1,36 @@
-#Ignore everything
-*
+# Prerequisites
+*.d
 
-#Whitelist anything that's a directory
-!*/
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
 
+# Precompiled Headers
+*.gch
+*.pch
 
-#And all the file types I'm interested in.
-!.gitignore
-!*.py
-!*.cpp
-!*.h
-!*.sh
-!*.md
-!Makefile
-!CMakeLists.txt
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
 
-.ipynb_checkpoints
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Jupyter Notebook
+*.ipynb
+*.ipynb_checkpoints
