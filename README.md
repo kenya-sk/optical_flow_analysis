@@ -2,18 +2,21 @@
 This repository calculates statistics value of movement by using saprse optical flow. 
 
 ## Workflow
-It is necessary to install OpenCV (>=4.0.0) in advance.
 ```
-# Compile file needed for execution.
-1. ./my_make.sh
+# 1. Build docker environment
+docker build -t optical_flow:latest .
+docker run -it optical_flow /bin/bash
 
-# Run the compiled file and enter various paths 
+# 2. Compile file needed for execution.
+./my_make.sh
+
+# 3. Run the compiled file and enter various paths 
 # (input video file path, output statistics value path and output video path) 
 # on the command line.
-2. ./main
+./main
 
-# Create a time series graph of calculated statistics.
-3. plot_data.py
+# 4. Create a time series graph of calculated statistics.
+python plot_data.py
 ```
 
 ## Demo
