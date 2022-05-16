@@ -1,7 +1,8 @@
 CC := g++
 CFLAG := -O3
 CFLAG += -std=c++11
-PKGCONFIG = `pkg-config --cflags opencv` `pkg-config --libs opencv`
+PKGCONFIG := `pkg-config --cflags opencv` 
+PKGCONFIG += `pkg-config --libs opencv`
 TARGET := main
 SRCS := main.cpp
 SRCS += optical_flow.cpp
