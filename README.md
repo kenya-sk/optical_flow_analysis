@@ -8,7 +8,7 @@ docker build -t optical_flow:latest .
 docker run -it optical_flow /bin/bash
 
 # 2. Compile file needed for execution.
-./my_make.sh
+make all
 
 # 3. Run the compiled file and enter various paths 
 # (input video file path, output statistics value path and output video path) 
